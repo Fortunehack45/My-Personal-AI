@@ -1,4 +1,3 @@
-// Summarize uploaded documents flow.
 'use server';
 /**
  * @fileOverview Summarizes user uploaded documents.
@@ -37,7 +36,7 @@ const prompt = ai.definePrompt({
 
   Please summarize the following document. 
 
-  Document: {{documentDataUri}}`,
+  Document: {{media url=documentDataUri}}`,
 });
 
 const summarizeDocumentsFlow = ai.defineFlow(
