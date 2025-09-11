@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
@@ -14,6 +14,7 @@ type ChatPanelProps = {
 export function ChatPanel({ messages: initialMessages, conversationId }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (content: string) => {
     setIsLoading(true);
@@ -39,20 +40,23 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
         message: content,
       });
 
-      const words = response.split(/(\s+)/); // Split by spaces and keep them
+      const words = response.split(/(\s+)/);
       let typedContent = '';
+
+      const wpm = 2000; // Words per minute
+      const averageWordLength = 5;
+      const delayPerChar = 60000 / (wpm * averageWordLength);
 
       for (let i = 0; i < words.length; i++) {
         typedContent += words[i];
         
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === assistantMessageId ? { ...msg, content: typedContent + '...' } : msg
+            msg.id === assistantMessageId ? { ...msg, content: typedContent } : msg
           )
         );
         
-        // Delay between 20ms and 60ms
-        const delay = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
+        const delay = words[i].length * delayPerChar + Math.random() * (delayPerChar / 2);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
@@ -83,15 +87,20 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
     setMessages(initialMessages);
   }, [initialMessages]);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
     <div className="flex flex-1 flex-col h-full">
       <div className="flex-1 overflow-auto">
         <MessageList messages={messages} />
+        <div ref={bottomRef} />
       </div>
-      <div className="border-t bg-background/95 backdrop-blur-sm">
+      <div className="border-t bg-background/50">
         <div className="mx-auto max-w-3xl p-4">
           <MessageComposer onSendMessage={handleSendMessage} isLoading={isLoading} />
-          <p className="text-center text-xs text-muted-foreground mt-2 px-4">
+          <p className="text-center text-xs text-muted-foreground mt-4 px-4">
             Chatty Sparrow may produce inaccurate information about people, places, or facts.
           </p>
         </div>

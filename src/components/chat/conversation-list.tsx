@@ -21,7 +21,7 @@ export function ConversationList() {
               asChild
             >
               <Link href={`/chat/${convo.id}`}>
-                <span className="truncate text-sm">{convo.title}</span>
+                <span className="truncate text-sm font-medium">{convo.title}</span>
               </Link>
             </Button>
           ))}

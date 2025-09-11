@@ -18,8 +18,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
+    <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
+      <Card className="w-full max-w-sm shadow-lg">
         <CardHeader className="items-center text-center">
           <Logo className="mb-4" />
           <CardTitle className="font-headline text-2xl">Welcome to Chatty Sparrow</CardTitle>

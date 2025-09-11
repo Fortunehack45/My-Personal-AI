@@ -48,7 +48,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
         >
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="shrink-0" disabled={isLoading}>
+                    <Button type="button" size="icon" variant="outline" className="shrink-0 rounded-full" disabled={isLoading}>
                         <Paperclip className="h-5 w-5" />
                         <span className="sr-only">Attach file</span>
                     </Button>
@@ -62,7 +62,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask Chatty Sparrow anything..."
-                  className="min-h-[48px] max-h-48 w-full rounded-xl resize-none bg-muted px-4 py-3 pr-14 text-sm border-0"
+                  className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-3 pr-14 text-base"
                   rows={1}
                   disabled={isLoading}
                 />
@@ -71,7 +71,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                         <Button
                             type="submit"
                             size="icon"
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full"
                             disabled={!message.trim() || isLoading}
                         >
                             <SendHorizonal className="h-4 w-4" />
