@@ -98,9 +98,9 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
         <div ref={bottomRef} />
       </div>
       <div className="border-t bg-background/50">
-        <div className="mx-auto max-w-3xl p-4">
+        <div className="mx-auto max-w-3xl p-4 space-y-4">
           <MessageComposer onSendMessage={handleSendMessage} isLoading={isLoading} />
-          <p className="text-center text-xs text-muted-foreground mt-4 px-4">
+          <p className="text-center text-xs text-muted-foreground px-4">
             Chatty Sparrow may produce inaccurate information about people, places, or facts.
           </p>
         </div>
