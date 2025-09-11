@@ -8,9 +8,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 type MessageComposerProps = {
   onSendMessage: (message: string) => void;
+  isLoading?: boolean;
 };
 
-export function MessageComposer({ onSendMessage }: MessageComposerProps) {
+export function MessageComposer({ onSendMessage, isLoading }: MessageComposerProps) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,7 +48,7 @@ export function MessageComposer({ onSendMessage }: MessageComposerProps) {
         >
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="shrink-0">
+                    <Button type="button" size="icon" variant="ghost" className="shrink-0" disabled={isLoading}>
                         <Paperclip className="h-5 w-5" />
                         <span className="sr-only">Attach file</span>
                     </Button>
@@ -63,6 +64,7 @@ export function MessageComposer({ onSendMessage }: MessageComposerProps) {
                   placeholder="Ask Chatty Sparrow anything..."
                   className="min-h-[48px] max-h-48 w-full rounded-xl resize-none bg-muted px-4 py-3 pr-14 text-sm border-0"
                   rows={1}
+                  disabled={isLoading}
                 />
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -70,7 +72,7 @@ export function MessageComposer({ onSendMessage }: MessageComposerProps) {
                             type="submit"
                             size="icon"
                             className="absolute right-2.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
-                            disabled={!message.trim()}
+                            disabled={!message.trim() || isLoading}
                         >
                             <SendHorizonal className="h-4 w-4" />
                             <span className="sr-only">Send</span>
