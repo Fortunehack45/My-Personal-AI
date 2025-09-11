@@ -14,7 +14,8 @@ type ChatPanelProps = {
 export function ChatPanel({ messages: initialMessages, conversationId }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const atBottomRef = useRef(true);
 
   const handleSendMessage = async (content: string) => {
     setIsLoading(true);
@@ -95,14 +96,28 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
   }, [initialMessages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = scrollableContainerRef.current;
+    if (container) {
+      const handleScroll = () => {
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+        atBottomRef.current = isAtBottom;
+      };
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (atBottomRef.current && scrollableContainerRef.current) {
+      scrollableContainerRef.current.scrollTop = scrollableContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   return (
     <div className="flex flex-1 flex-col h-full">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" ref={scrollableContainerRef}>
         <MessageList messages={messages} />
-        <div ref={bottomRef} />
       </div>
       <div className="border-t bg-background/50">
         <div className="mx-auto max-w-3xl p-4 space-y-4">
