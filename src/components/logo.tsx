@@ -21,8 +21,8 @@ export function SparrowIcon(props: HTMLAttributes<SVGSVGElement>) {
 export function Logo({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("flex items-center gap-2", className)} {...props}>
-      <SparrowIcon className="h-6 w-6 text-primary" />
-      <h1 className="font-headline text-lg font-bold text-foreground">Chatty Sparrow</h1>
+      <SparrowIcon className="h-7 w-7 text-accent" />
+      <h1 className="font-headline text-xl font-bold text-foreground">Chatty Sparrow</h1>
     </div>
   );
 }

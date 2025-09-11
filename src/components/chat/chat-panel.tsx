@@ -43,7 +43,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       const words = response.split(/(\s+)/);
       let typedContent = '';
 
-      const wpm = 2000; // Words per minute
+      const wpm = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
       const averageWordLength = 5;
       const delayPerChar = 60000 / (wpm * averageWordLength);
 
@@ -93,7 +93,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
 
   return (
     <div className="flex flex-1 flex-col h-full">
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-y-auto">
         <MessageList messages={messages} />
         <div ref={bottomRef} />
       </div>

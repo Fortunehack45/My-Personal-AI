@@ -44,11 +44,11 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                 e.preventDefault();
                 handleSendMessage();
             }}
-            className="relative flex w-full items-start gap-2"
+            className="relative flex w-full items-start gap-3"
         >
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="outline" className="shrink-0 rounded-full" disabled={isLoading}>
+                    <Button type="button" size="icon" variant="outline" className="shrink-0 rounded-full h-12 w-12" disabled={isLoading}>
                         <Paperclip className="h-5 w-5" />
                         <span className="sr-only">Attach file</span>
                     </Button>
@@ -62,7 +62,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask Chatty Sparrow anything..."
-                  className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-3 pr-14 text-base"
+                  className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-3.5 pr-14 text-base"
                   rows={1}
                   disabled={isLoading}
                 />
@@ -71,7 +71,8 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                         <Button
                             type="submit"
                             size="icon"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full"
+                            variant="default"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
                             disabled={!message.trim() || isLoading}
                         >
                             <SendHorizonal className="h-4 w-4" />

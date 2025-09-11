@@ -1,9 +1,8 @@
 import type { Message } from '@/lib/data';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SparrowIcon } from '@/components/logo';
+import { SparrowIcon, Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { User } from 'lucide-react';
-import { Card } from '../ui/card';
 
 type MessageListProps = {
   messages: Message[];
@@ -12,14 +11,16 @@ type MessageListProps = {
 export function MessageList({ messages }: MessageListProps) {
   if (!messages.length) {
     return (
-        <div className="flex h-full flex-col items-center justify-center gap-4 p-4 text-center">
-            <div className='p-4 bg-primary/10 rounded-full'>
-              <SparrowIcon className="h-12 w-12 text-primary" />
+        <div className="flex h-full flex-col items-center justify-center gap-6 p-4 text-center">
+            <div className='p-5 bg-primary/20 rounded-full border-4 border-primary/30 shadow-lg'>
+              <Logo className='text-accent' />
             </div>
-            <h2 className="font-headline text-2xl font-semibold">How can I help you today?</h2>
-            <p className="text-muted-foreground max-w-sm">
-              Ask me anything from drafting emails to brainstorming ideas. I'm here to assist you.
-            </p>
+            <div className="space-y-2">
+              <h2 className="font-headline text-3xl font-semibold">How can I help you today?</h2>
+              <p className="text-muted-foreground max-w-sm">
+                Ask me anything from drafting emails to brainstorming ideas. I'm here to assist you.
+              </p>
+            </div>
         </div>
     );
   }
@@ -33,8 +34,8 @@ export function MessageList({ messages }: MessageListProps) {
         )}>
           {message.role !== 'user' && (
             <Avatar className={cn(
-                "h-8 w-8 border",
-                message.role === 'user' ? "bg-background" : "bg-primary text-primary-foreground"
+                "h-9 w-9 border-2",
+                "bg-accent text-accent-foreground shadow-sm"
             )}>
               <AvatarFallback className="bg-transparent">
                 <SparrowIcon className="h-5 w-5" />
@@ -43,18 +44,15 @@ export function MessageList({ messages }: MessageListProps) {
           )}
 
           <div className={cn(
-            "flex-1 space-y-2 pt-0.5 max-w-[85%]",
-            message.role === 'user' ? 'order-2' : ''
+            "flex-1 space-y-2 max-w-[85%]",
+            message.role === 'user' ? 'order-2 text-right' : ''
           )}>
-            <p className={cn(
-              "font-bold font-headline",
-              message.role === 'user' ? 'text-right' : ''
-            )}>
+            <p className="font-bold font-headline text-sm">
               {message.role === 'user' ? 'You' : 'Chatty Sparrow'}
             </p>
             <div className={cn(
-              "text-foreground leading-relaxed p-4 rounded-2xl",
-              message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
+              "text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",
+              message.role === 'user' ? 'bg-accent text-accent-foreground rounded-br-lg' : 'bg-background rounded-bl-lg'
             )}>
               {message.content || <span className="animate-pulse">|</span>}
             </div>
@@ -62,7 +60,7 @@ export function MessageList({ messages }: MessageListProps) {
 
           {message.role === 'user' && (
             <Avatar className={cn(
-                "h-8 w-8 border bg-background",
+                "h-9 w-9 border-2 bg-background shadow-sm",
                 'order-1'
             )}>
               <AvatarFallback className="bg-transparent">

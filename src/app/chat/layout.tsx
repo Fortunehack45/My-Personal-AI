@@ -20,14 +20,14 @@ import { Separator } from '@/components/ui/separator';
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full bg-muted/20">
+      <div className="min-h-screen w-full bg-background">
         <Sidebar variant="inset" collapsible="icon">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
           <SidebarContent>
             <div className="space-y-2 p-2">
-                <Button className="w-full justify-start font-headline" asChild>
+                <Button className="w-full justify-start font-headline bg-accent text-accent-foreground hover:bg-accent/90" asChild>
                     <Link href="/chat">
                         <Plus className="mr-2 h-4 w-4" />
                         New Conversation
@@ -52,13 +52,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         </Sidebar>
 
         <div className="flex flex-col md:pl-[var(--sidebar-width-icon)] lg:pl-[calc(var(--sidebar-width)_+_1rem)]">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-20 lg:px-6">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className='md:hidden'>
                 <PanelLeft className="h-5 w-5" />
                 <span className="sr-only">Toggle sidebar</span>
               </Button>
-              <h1 className="font-headline font-semibold text-lg truncate">New Conversation</h1>
+              <h1 className="font-headline font-semibold text-xl lg:text-2xl truncate">New Conversation</h1>
             </div>
 
             <div className="ml-auto flex items-center gap-4">
@@ -73,10 +73,10 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
           </header>
           <div className="flex flex-1">
-            <SidebarInset className="flex-1">
+            <SidebarInset className="flex-1 bg-muted/20">
               {children}
             </SidebarInset>
-            <aside className="hidden w-96 border-l bg-background/50 lg:block">
+            <aside className="hidden w-96 border-l bg-background lg:block">
               <ContextPanel />
             </aside>
           </div>

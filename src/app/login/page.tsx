@@ -18,11 +18,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
-      <Card className="w-full max-w-sm shadow-lg">
-        <CardHeader className="items-center text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-sm shadow-2xl rounded-2xl">
+        <CardHeader className="items-center text-center space-y-4">
           <Logo className="mb-4" />
-          <CardTitle className="font-headline text-2xl">Welcome to Chatty Sparrow</CardTitle>
+          <CardTitle className="font-headline text-3xl">Welcome to Chatty Sparrow</CardTitle>
           <CardDescription>Enter your credentials to start chatting.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
@@ -37,7 +37,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full font-headline">
+            <Button type="submit" className="w-full font-headline text-base bg-accent text-accent-foreground hover:bg-accent/90">
               Login
             </Button>
           </CardFooter>
