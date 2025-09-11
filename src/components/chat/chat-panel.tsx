@@ -39,17 +39,29 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
         message: content,
       });
 
-      const assistantMessage: Message = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: response,
-      };
+      const words = response.split(/(\s+)/); // Split by spaces and keep them
+      let typedContent = '';
+
+      for (let i = 0; i < words.length; i++) {
+        typedContent += words[i];
+        
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId ? { ...msg, content: typedContent + '...' } : msg
+          )
+        );
+        
+        // Delay between 20ms and 60ms
+        const delay = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
 
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === assistantMessageId ? assistantMessage : msg
+          msg.id === assistantMessageId ? { ...msg, content: response } : msg
         )
       );
+
     } catch (error) {
         console.error("Error generating response:", error);
         const errorMessage: Message = {
