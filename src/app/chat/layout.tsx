@@ -14,14 +14,12 @@ import { ContextPanel } from '@/components/chat/context-panel';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { SheetTitle } from '@/components/ui/sheet';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen w-full">
         <Sidebar>
-          <SheetTitle className="sr-only">Sidebar</SheetTitle>
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
