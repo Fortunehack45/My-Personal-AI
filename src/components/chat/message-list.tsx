@@ -1,6 +1,8 @@
+import { motion } from 'framer-motion';
 import type { Message } from '@/lib/data';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SparrowIcon, Logo } from '@/components/logo';
+import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
 import { User } from 'lucide-react';
 
@@ -28,10 +30,16 @@ export function MessageList({ messages }: MessageListProps) {
   return (
     <div className="relative mx-auto max-w-3xl px-4 pt-4">
       {messages.map((message, index) => (
-        <div key={message.id || index} className={cn(
-          "flex items-start gap-4 py-6",
-          message.role === 'user' ? 'justify-end' : ''
-        )}>
+        <motion.div
+          key={message.id || index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className={cn(
+            "flex items-start gap-4 py-6",
+            message.role === 'user' ? 'justify-end' : ''
+          )}
+        >
           {message.role !== 'user' && (
             <Avatar className={cn(
                 "h-9 w-9 border-2",
@@ -51,10 +59,10 @@ export function MessageList({ messages }: MessageListProps) {
               {message.role === 'user' ? 'You' : 'Chatty Sparrow'}
             </p>
             <div className={cn(
-              "text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",
-              message.role === 'user' ? 'bg-accent text-accent-foreground rounded-br-lg' : 'bg-background rounded-bl-lg'
+              "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",
+              message.role === 'user' ? 'bg-accent text-accent-foreground rounded-br-lg prose-invert' : 'bg-background rounded-bl-lg'
             )}>
-              {message.content || <span className="animate-pulse">|</span>}
+              <Markdown content={message.content || '...'} />
             </div>
           </div>
 
@@ -68,8 +76,7 @@ export function MessageList({ messages }: MessageListProps) {
               </AvatarFallback>
             </Avatar>
           )}
-
-        </div>
+        </motion.div>
       ))}
     </div>
   );
