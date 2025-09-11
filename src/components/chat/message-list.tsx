@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import type { Message } from '@/lib/data';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
