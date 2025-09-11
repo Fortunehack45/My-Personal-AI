@@ -31,12 +31,11 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       id: assistantMessageId,
       role: 'assistant',
       content: '',
+      status: 'thinking',
     };
     setMessages((prev) => [...prev, assistantMessagePlaceholder]);
 
     try {
-      // For streaming, we would use a different approach,
-      // but for now, we await the full response.
       const { response } = await generateResponseBasedOnContext({
         conversationId: conversationId || 'new',
         message: content,
@@ -44,11 +43,16 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
 
       const words = response.split(/(\s+)/);
       let typedContent = '';
-
-      // Words per minute for typing animation
-      const wpm = Math.floor(Math.random() * (2000 - 800 + 1)) + 800; // Realistic WPM
+      
+      const wpm = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
       const averageWordLength = 5;
       const delayPerChar = 60000 / (wpm * averageWordLength);
+      
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId ? { ...msg, status: undefined } : msg
+        )
+      );
 
       for (let i = 0; i < words.length; i++) {
         typedContent += words[i];
@@ -59,12 +63,10 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
           )
         );
         
-        // Add a small, variable delay to make typing seem more natural
         const delay = words[i].length * delayPerChar + Math.random() * (delayPerChar / 2);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
-      // Ensure the final content is set correctly
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId ? { ...msg, content: response } : msg

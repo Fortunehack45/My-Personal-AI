@@ -12,6 +12,14 @@ type MessageListProps = {
   messages: Message[];
 };
 
+const ThinkingIndicator = () => (
+    <div className="flex items-center gap-2">
+        <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-pulse [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-pulse [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-pulse" />
+    </div>
+);
+
 export function MessageList({ messages }: MessageListProps) {
   if (!messages.length) {
     return (
@@ -64,7 +72,11 @@ export function MessageList({ messages }: MessageListProps) {
               "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",
               message.role === 'user' ? 'bg-accent text-accent-foreground rounded-br-lg prose-invert' : 'bg-background rounded-bl-lg'
             )}>
-              <Markdown content={message.content || '...'} />
+              {message.status === 'thinking' ? (
+                <ThinkingIndicator />
+              ) : (
+                <Markdown content={message.content || ''} />
+              )}
             </div>
           </div>
 
