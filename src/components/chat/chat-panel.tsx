@@ -44,7 +44,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       const words = response.split(/(\s+)/);
       let typedContent = '';
       
-      const wpm = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+      const wpm = 5000;
       const averageWordLength = 5;
       const delayPerChar = 60000 / (wpm * averageWordLength);
       
