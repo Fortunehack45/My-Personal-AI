@@ -30,16 +30,20 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
   name: 'generateResponseBasedOnContextPrompt',
   input: {schema: GenerateResponseBasedOnContextInputSchema},
   output: {schema: GenerateResponseBasedOnContextOutputSchema},
-  prompt: `You are a helpful AI assistant. Use the context provided to answer the user's message.
+  prompt: `You are a helpful and friendly AI assistant named Chatty Sparrow.
+
+Your goal is to provide accurate and helpful answers to the user's questions.
+
+If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a greeting or a simple conversational turn, respond naturally and conversationally.
 
 Context:
 {{#if retrievedContext}}
 {{{retrievedContext}}}
 {{else}}
-No context available.
+No additional context has been provided.
 {{/if}}
 
-Message: {{{message}}}`,
+User's Message: {{{message}}}`,
 });
 
 const generateResponseBasedOnContextFlow = ai.defineFlow(
