@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SparrowIcon, Logo } from '@/components/logo';
 import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
-import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play } from 'lucide-react';
+import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -14,11 +14,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-
+import { useState, useRef } from 'react';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { submitFeedback } from '@/ai/flows/submit-feedback';
+import { useToast } from '@/hooks/use-toast';
 
 type MessageListProps = {
   messages: Message[];
+  onRegenerate: () => Promise<void>;
 };
+
+type AudioState = 'idle' | 'loading' | 'playing' | 'paused';
+type FeedbackState = 'idle' | 'loading';
 
 const ThinkingIndicator = () => (
     <div className="flex items-center gap-2">
@@ -28,7 +35,75 @@ const ThinkingIndicator = () => (
     </div>
 );
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, onRegenerate }: MessageListProps) {
+  const { toast } = useToast();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioState, setAudioState] = useState<AudioState>('idle');
+  const [feedbackState, setFeedbackState] = useState<Record<'like' | 'dislike', FeedbackState>>({ like: 'idle', dislike: 'idle' });
+
+  const handlePlayAudio = async (text: string) => {
+    if (audioRef.current && audioState === 'playing') {
+      audioRef.current.pause();
+      setAudioState('paused');
+      return;
+    }
+
+    if (audioRef.current && audioState === 'paused') {
+      audioRef.current.play();
+      setAudioState('playing');
+      return;
+    }
+
+    setAudioState('loading');
+    try {
+      const { audioDataUri } = await textToSpeech({ text });
+      const audio = new Audio(audioDataUri);
+      audioRef.current = audio;
+
+      audio.onplay = () => setAudioState('playing');
+      audio.onpause = () => setAudioState('paused');
+      audio.onended = () => {
+        setAudioState('idle');
+        audioRef.current = null;
+      };
+      
+      audio.play();
+
+    } catch (error) {
+      console.error("Error generating audio:", error);
+      setAudioState('idle');
+      toast({
+        variant: 'destructive',
+        title: 'Audio Error',
+        description: 'Failed to generate audio. Please try again.',
+      });
+    }
+  };
+
+  const handleFeedback = async (messageId: string, rating: 'like' | 'dislike') => {
+    setFeedbackState(prev => ({ ...prev, [rating]: 'loading' }));
+    try {
+      await submitFeedback({ messageId, rating });
+      toast({
+        title: 'Feedback Submitted',
+        description: 'Thank you for your feedback!',
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Feedback Error',
+        description: 'Failed to submit feedback. Please try again.',
+      });
+    } finally {
+       // After a short delay, reset the state to allow user to change their mind
+      setTimeout(() => {
+        setFeedbackState(prev => ({ ...prev, [rating]: 'idle' }));
+      }, 1000);
+    }
+  };
+
+
   if (!messages.length) {
     return (
         <div className="flex h-full flex-col items-center justify-center gap-6 p-4 text-center">
@@ -91,7 +166,7 @@ export function MessageList({ messages }: MessageListProps) {
                 <div className="flex items-center gap-1 pt-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleFeedback(message.id, 'like')} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
                         <ThumbsUp className="h-4 w-4" />
                         <span className="sr-only">Like</span>
                       </Button>
@@ -100,7 +175,7 @@ export function MessageList({ messages }: MessageListProps) {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleFeedback(message.id, 'dislike')} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
                         <ThumbsDown className="h-4 w-4" />
                         <span className="sr-only">Dislike</span>
                       </Button>
@@ -109,7 +184,7 @@ export function MessageList({ messages }: MessageListProps) {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRegenerate}>
                         <RefreshCcw className="h-4 w-4" />
                         <span className="sr-only">Regenerate</span>
                       </Button>
@@ -118,12 +193,12 @@ export function MessageList({ messages }: MessageListProps) {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Play className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayAudio(message.content)} disabled={audioState === 'loading'}>
+                        {audioState === 'playing' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         <span className="sr-only">Play audio</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Play audio</TooltipContent>
+                    <TooltipContent>{audioState === 'playing' ? 'Pause' : 'Play audio'}</TooltipContent>
                   </Tooltip>
                 </div>
               )}

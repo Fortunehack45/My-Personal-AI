@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
@@ -17,17 +17,10 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
 
-  const handleSendMessage = async (content: string) => {
+  const generateResponse = useCallback(async (prompt: string, messagesToUpdate: Message[]) => {
     setIsLoading(true);
-    const newMessage: Message = {
-      id: `${conversationId || 'new'}-${messages.length + 1}`,
-      role: 'user',
-      content,
-    };
-    const newMessages = [...messages, newMessage];
-    setMessages(newMessages);
 
-    const assistantMessageId = `${conversationId || 'new'}-${newMessages.length + 1}`;
+    const assistantMessageId = `${conversationId || 'new'}-${messagesToUpdate.length + 1}`;
     const assistantMessagePlaceholder: Message = {
       id: assistantMessageId,
       role: 'assistant',
@@ -39,7 +32,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
     try {
       const { response } = await generateResponseBasedOnContext({
         conversationId: conversationId || 'new',
-        message: content,
+        message: prompt,
       });
 
       const words = response.split(/(\s+)/);
@@ -89,7 +82,34 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
     } finally {
         setIsLoading(false);
     }
+  }, [conversationId]);
+
+  const handleSendMessage = async (content: string) => {
+    const newMessage: Message = {
+      id: `${conversationId || 'new'}-${messages.length + 1}`,
+      role: 'user',
+      content,
+    };
+    const newMessages = [...messages, newMessage];
+    setMessages(newMessages);
+    await generateResponse(content, newMessages);
   };
+  
+  const handleRegenerate = useCallback(async () => {
+    const userMessages = messages.filter((msg) => msg.role === 'user');
+    const lastUserMessage = userMessages[userMessages.length - 1];
+    
+    if (!lastUserMessage) return;
+
+    // Remove the last assistant message
+    const newMessages = messages.filter((msg, index) => {
+        return !(msg.role === 'assistant' && index === messages.length - 1);
+    });
+    setMessages(newMessages);
+
+    await generateResponse(lastUserMessage.content, newMessages);
+  }, [messages, generateResponse]);
+
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -117,7 +137,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
   return (
     <div className="flex flex-1 flex-col h-full">
       <div className="flex-1 overflow-y-auto" ref={scrollableContainerRef}>
-        <MessageList messages={messages} />
+        <MessageList messages={messages} onRegenerate={handleRegenerate} />
       </div>
       <div className="border-t bg-background/50">
         <div className="mx-auto max-w-3xl p-4 space-y-4">
