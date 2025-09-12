@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 
 const WPM_TO_CPS = (wpm: number) => (wpm * 5) / 60;
 
-export const useTypingEffect = (text: string, isLastMessage: boolean, wordsPerMinute = 5000) => {
+export const useTypingEffect = (text: string, isLastMessage: boolean, wordsPerMinute = 800) => {
     const [displayedText, setDisplayedText] = useState('');
     // Cap WPM to a reasonable number to prevent performance issues
     const cappedWpm = Math.min(wordsPerMinute, 1000); 
