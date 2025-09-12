@@ -79,7 +79,7 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
   };
 
   const handlePlayAudio = async (messageId: string, text: string) => {
-    if (audioRef.current && audioState === 'playing') {
+    if (audioRef.current && audioState === 'playing' && activeAudio?.messageId === messageId) {
       audioRef.current.pause();
       setAudioState('paused');
       return;
@@ -98,7 +98,15 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
     audioRef.current = audio;
 
     audio.onplay = () => setAudioState('playing');
-    audio.onpause = () => setAudioState('paused');
+    audio.onpause = () => {
+      if (audio.ended) {
+        setAudioState('idle');
+        audioRef.current = null;
+        setActiveAudio(null);
+      } else {
+        setAudioState('paused');
+      }
+    };
     audio.onended = () => {
       setAudioState('idle');
       audioRef.current = null;
