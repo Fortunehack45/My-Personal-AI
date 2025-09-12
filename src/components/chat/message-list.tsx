@@ -63,10 +63,10 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
       setAudioState('idle');
       
       let description = 'Failed to generate audio. Please try again.';
-      if (error.message && error.message.includes('503 Service Unavailable')) {
-        description = 'The audio service is currently busy. Please try again in a moment.';
-      } else if (error.message && (error.message.includes('429 Too Many Requests') || error.message.includes('exceeded your current quota'))) {
+      if (error.message && (error.message.includes('429') || error.message.includes('exceeded your current quota'))) {
         description = 'You have exceeded the API quota for audio generation. Please check your plan and billing details.';
+      } else if (error.message && error.message.includes('503')) {
+        description = 'The audio service is currently busy. Please try again in a moment.';
       }
 
       toast({
