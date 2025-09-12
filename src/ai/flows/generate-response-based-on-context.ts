@@ -4,7 +4,7 @@
  *
  * - generateResponseBasedOnContext - A function that generates a response based on the context.
  * - GenerateResponseBasedOnContextInput - The input type for the generateResponseBasedOnContext function.
- * - GenerateResponseBasedOnContextOutput - The return type for the generateResponseBasedOnContext function.
+ * - GenerateResponseBasedOnContextOutput - The return type for the generateResponseBasedOn-Context function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -44,9 +44,16 @@ export async function generateResponseBasedOnContext(input: GenerateResponseBase
   return generateResponseBasedOnContextFlow(input);
 }
 
+// Define an extended schema for the prompt that includes the boolean mode flags
+const PromptInputSchema = GenerateResponseBasedOnContextInputSchema.extend({
+    isSearchMode: z.boolean().optional(),
+    isThinkDeepMode: z.boolean().optional(),
+});
+
+
 const generateResponseBasedOnContextPrompt = ai.definePrompt({
   name: 'generateResponseBasedOnContextPrompt',
-  input: {schema: GenerateResponseBasedOnContextInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: GenerateResponseBasedOnContextOutputSchema},
   tools: [googleAI.googleSearch],
   prompt: `You are a helpful and friendly AI assistant named Progress. Your creator is a young innovator named Fortune.
@@ -95,10 +102,10 @@ Context:
 No additional context has been provided.
 {{/if}}
 
-{{#if (eq mode "search")}}
+{{#if isSearchMode}}
 You are in "Search the Internet" mode. Use the googleSearch tool to find the most up-to-date information to answer the user's question. Prioritize information from reliable sources.
 {{/if}}
-{{#if (eq mode "thinkDeep")}}
+{{#if isThinkDeepMode}}
 You are in "Think Deep" mode. Provide a comprehensive, well-structured, and in-depth response. Break down the problem, explain your reasoning, and explore multiple perspectives.
 {{/if}}
 
@@ -112,7 +119,14 @@ const generateResponseBasedOnContextFlow = ai.defineFlow(
     outputSchema: GenerateResponseBasedOnContextOutputSchema,
   },
   async input => {
-    const {output} = await generateResponseBasedOnContextPrompt(input);
+    // Prepare the input for the prompt, including the boolean flags for the mode.
+    const promptInput = {
+      ...input,
+      isSearchMode: input.mode === 'search',
+      isThinkDeepMode: input.mode === 'thinkDeep',
+    };
+    
+    const {output} = await generateResponseBasedOnContextPrompt(promptInput);
     return output!;
   }
 );
