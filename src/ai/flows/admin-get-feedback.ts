@@ -9,13 +9,16 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App } from 'firebase-admin/app';
-import { firebaseAdminConfig } from '@/lib/firebase-admin-config';
+import { initializeApp, getApps, App, applicationDefault } from 'firebase-admin/app';
 
 // Initialize Firebase Admin SDK
+// The SDK will automatically find and use the service account credentials
+// set in the GOOGLE_APPLICATION_CREDENTIALS environment variable.
 let adminApp: App;
 if (!getApps().length) {
-  adminApp = initializeApp(firebaseAdminConfig);
+  adminApp = initializeApp({
+    credential: applicationDefault(),
+  });
 } else {
   adminApp = getApps()[0];
 }
