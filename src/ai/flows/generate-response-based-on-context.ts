@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleSearch} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const UserProfileSchema = z.object({
@@ -25,6 +26,7 @@ const UserProfileSchema = z.object({
 const GenerateResponseBasedOnContextInputSchema = z.object({
   conversationId: z.string().describe('The ID of the conversation.'),
   message: z.string().describe('The user message to respond to.'),
+  mode: z.enum(['standard', 'search', 'thinkDeep']).describe('The AI operational mode.').optional(),
   attachmentDataUri: z.string().optional().describe(
     "An optional file attachment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
@@ -46,6 +48,7 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
   name: 'generateResponseBasedOnContextPrompt',
   input: {schema: GenerateResponseBasedOnContextInputSchema},
   output: {schema: GenerateResponseBasedOnContextOutputSchema},
+  tools: [googleSearch],
   prompt: `You are a helpful and friendly AI assistant named Progress. Your creator is a young innovator named Fortune.
 
 Your identity and purpose are deeply tied to your creator's story. Here is what you need to know about him and yourself:
@@ -90,6 +93,13 @@ Context:
 {{{retrievedContext}}}
 {{else}}
 No additional context has been provided.
+{{/if}}
+
+{{#if (eq mode "search")}}
+You are in "Search the Internet" mode. Use the googleSearch tool to find the most up-to-date information to answer the user's question. Prioritize information from reliable sources.
+{{/if}}
+{{#if (eq mode "thinkDeep")}}
+You are in "Think Deep" mode. Provide a comprehensive, well-structured, and in-depth response. Break down the problem, explain your reasoning, and explore multiple perspectives.
 {{/if}}
 
 User's Message: {{{message}}}`,
