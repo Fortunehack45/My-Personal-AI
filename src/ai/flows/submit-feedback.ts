@@ -14,6 +14,10 @@ import {z} from 'genkit';
 const SubmitFeedbackInputSchema = z.object({
   messageId: z.string().describe('The ID of the message being rated.'),
   rating: z.enum(['like', 'dislike']).describe('The feedback rating.'),
+  reason: z.string().optional().describe('The reason for the feedback.'),
+  conversationId: z.string().describe('The ID of the conversation.'),
+  userId: z.string().describe('The ID of the user submitting the feedback.'),
+  messageContent: z.string().describe('The content of the message being rated.'),
 });
 export type SubmitFeedbackInput = z.infer<typeof SubmitFeedbackInputSchema>;
 
@@ -32,10 +36,20 @@ const submitFeedbackFlow = ai.defineFlow(
     inputSchema: SubmitFeedbackInputSchema,
     outputSchema: SubmitFeedbackOutputSchema,
   },
-  async input => {
+  async (input) => {
     // In a real implementation, this would store the feedback in a database.
     // For this example, we'll just log it to the console.
-    console.log(`Feedback submitted for message ${input.messageId}: ${input.rating}`);
+    console.log(`Feedback submitted:`, input);
+    
+    // This is where you would add the logic to save to Firestore.
+    // For example:
+    // import { getFirestore } from 'firebase-admin/firestore';
+    // const db = getFirestore();
+    // await db.collection('feedback').add({
+    //   ...input,
+    //   submittedAt: new Date(),
+    // });
+    
     return { success: true };
   }
 );

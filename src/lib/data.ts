@@ -15,6 +15,17 @@ export type Message = {
   status?: 'thinking';
 };
 
+export type Feedback = {
+  id: string;
+  userId: string;
+  conversationId: string;
+  messageId: string;
+  messageContent: string;
+  rating: 'like' | 'dislike';
+  reason?: string;
+  submittedAt: Timestamp;
+}
+
 export const conversations: Conversation[] = [
   { id: '1', title: 'Explaining Recursion', createdAt: Timestamp.now(), userId: 'mock' },
   { id: '2', title: 'Plan a trip to Japan', createdAt: Timestamp.now(), userId: 'mock' },

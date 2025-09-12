@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Settings, BrainCircuit } from 'lucide-react';
+import { User, LogOut, Settings, BrainCircuit, ShieldCheck } from 'lucide-react';
 
 export function UserNav() {
   const { user, userProfile } = useAuth();
@@ -32,6 +32,7 @@ export function UserNav() {
   }
   
   const userInitial = userProfile?.firstName ? userProfile.firstName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U';
+  const isAdmin = user.email === 'fortunedomination@gmail.com';
 
   return (
     <DropdownMenu>
@@ -69,6 +70,14 @@ export function UserNav() {
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>
+           {isAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin">
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
