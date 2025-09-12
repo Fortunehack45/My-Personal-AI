@@ -61,9 +61,8 @@ const ThinkingIndicator = () => (
     </div>
 );
 
-const AssistantMessage = ({ message }: { message: Message }) => {
-    const displayedContent = useTypingEffect(message.content || '', 5000);
-
+const AssistantMessage = ({ content }: { content: string }) => {
+    const displayedContent = useTypingEffect(content, 5000);
     return <Markdown content={displayedContent} />;
 };
 
@@ -277,7 +276,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
                   {message.status === 'thinking' ? (
                     <ThinkingIndicator />
                   ) : message.role === 'assistant' ? (
-                    <AssistantMessage message={message} />
+                    <AssistantMessage content={message.content || ''} />
                   ) : (
                     <Markdown content={message.content || ''} />
                   )}

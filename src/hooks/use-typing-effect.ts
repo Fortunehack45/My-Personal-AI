@@ -14,7 +14,9 @@ const WPM_TO_CPS = (wpm: number) => (wpm * 5) / 60;
 
 export const useTypingEffect = (text: string, wordsPerMinute = 250) => {
     const [displayedText, setDisplayedText] = useState('');
-    const cps = WPM_TO_CPS(wordsPerMinute);
+    // Cap WPM to a reasonable number to prevent performance issues
+    const cappedWpm = Math.min(wordsPerMinute, 1000); 
+    const cps = WPM_TO_CPS(cappedWpm);
     const interval = 1000 / cps;
 
     useEffect(() => {
