@@ -43,9 +43,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Help
               </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings2 className="mr-2 h-4 w-4" />
-                Settings
+              <Button variant="ghost" className="w-full justify-start" asChild>
+                <Link href="/settings">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
               </Button>
             </div>
           </SidebarFooter>
