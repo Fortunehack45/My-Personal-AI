@@ -13,8 +13,7 @@ import { UserNav } from '@/components/chat/user-nav';
 import { ConversationList } from '@/components/chat/conversation-list';
 import { ContextPanel } from '@/components/chat/context-panel';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, MessageSquare, Settings2, FileText, Bot } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Plus, Bot, Settings2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
@@ -67,7 +66,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             </div>
 
           </header>
-          <div className="flex flex-1">
+          <div className="flex flex-1 h-[calc(100vh-theme(height.16))] lg:h-[calc(100vh-theme(height.20))]">
             <SidebarInset className="flex-1 bg-muted/20">
               {children}
             </SidebarInset>

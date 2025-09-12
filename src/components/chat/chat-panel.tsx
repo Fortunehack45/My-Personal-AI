@@ -25,8 +25,6 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
   const [isLoading, setIsLoading] = useState(false);
   const [activeAudio, setActiveAudio] = useState<ActiveAudio | null>(null);
   const [conversationId, setConversationId] = useState<string | undefined>(currentConversationId);
-  const scrollableContainerRef = useRef<HTMLDivElement>(null);
-  const atBottomRef = useRef(true);
   const { user, userProfile } = useAuth();
   const router = useRouter();
   
@@ -181,38 +179,16 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
 
   }, [conversationId, user, messages, generateResponse]);
 
-
-  useEffect(() => {
-    const container = scrollableContainerRef.current;
-    if (container) {
-      const handleScroll = () => {
-        const { scrollTop, scrollHeight, clientHeight } = container;
-        const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-        atBottomRef.current = isAtBottom;
-      };
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (atBottomRef.current && scrollableContainerRef.current) {
-      scrollableContainerRef.current.scrollTop = scrollableContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <div className="flex flex-1 flex-col h-full">
-      <div className="flex-1 overflow-y-auto" ref={scrollableContainerRef}>
-        <MessageList 
-            messages={messages} 
-            onRegenerate={handleRegenerate}
-            activeAudio={activeAudio}
-            onPlayAudio={handlePlayAudio}
-            onAudioEnded={handleAudioEnded}
-            isNewChat={!conversationId}
-        />
-      </div>
+      <MessageList 
+          messages={messages} 
+          onRegenerate={handleRegenerate}
+          activeAudio={activeAudio}
+          onPlayAudio={handlePlayAudio}
+          onAudioEnded={handleAudioEnded}
+          isNewChat={!conversationId}
+      />
       <div className="border-t bg-background/50 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl p-4 space-y-4">
           <MessageComposer onSendMessage={handleSendMessage} isLoading={isLoading} />

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { Message } from '@/lib/data';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SparrowIcon, Logo } from '@/components/logo';
+import { Logo } from '@/components/logo';
 import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
 import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause, Download, Bot } from 'lucide-react';
@@ -70,6 +70,8 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const atBottomRef = useRef(true);
   const [audioState, setAudioState] = useState<AudioState>('idle');
   const [currentAudioMessageId, setCurrentAudioMessageId] = useState<string | null>(null);
   const [feedbackState, setFeedbackState] = useState<Record<FeedbackRating, FeedbackState>>({ like: 'idle', dislike: 'idle' });
@@ -211,10 +213,147 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
       }, 1000);
     }
   };
+  
+  useEffect(() => {
+    const container = scrollableContainerRef.current;
+    if (container) {
+      const handleScroll = () => {
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+        atBottomRef.current = isAtBottom;
+      };
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (atBottomRef.current && scrollableContainerRef.current) {
+      scrollableContainerRef.current.scrollTop = scrollableContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const messageContent = (
+    <div className="relative mx-auto max-w-3xl px-4 pt-4">
+    {messages.map((message, index) => {
+        const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
+        const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
+        const isLastMessage = index === messages.length - 1;
+        
+      return (
+      <motion.div
+        key={message.id || index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex items-start gap-4 py-6"
+      >
+        {message.role !== 'user' && (
+          <Avatar className={cn(
+              "h-9 w-9 border-2",
+              "bg-primary text-primary-foreground shadow-sm"
+          )}>
+            <AvatarFallback className="bg-transparent">
+              <Bot className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+
+        <div className={cn(
+          "flex-1 space-y-2 max-w-[85%]",
+          message.role === 'user' ? 'ml-auto flex flex-col items-end' : ''
+        )}>
+          <p className={cn(
+              "font-bold font-headline text-sm",
+          )}>
+            {message.role === 'user' ? 'You' : 'Progress'}
+          </p>
+          <div className={cn(
+            "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-xl shadow-sm space-y-4",
+            "dark:prose-invert",
+            message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
+          )}>
+            {message.attachmentDataUri && (
+              <div className="relative aspect-video rounded-md overflow-hidden border">
+                <Image src={message.attachmentDataUri} alt="User attachment" layout="fill" objectFit="contain" />
+              </div>
+            )}
+            {message.status === 'thinking' ? (
+              <ThinkingIndicator />
+            ) : message.role === 'assistant' ? (
+              <AssistantMessage content={message.content || ''} isLastMessage={isLastMessage} />
+            ) : (
+              <Markdown content={message.content || ''} />
+            )}
+          </div>
+          {message.role === 'assistant' && message.status !== 'thinking' && message.content && (
+            <div className="flex items-center gap-1 pt-1 text-muted-foreground">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'like', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
+                    <ThumbsUp className="h-4 w-4" />
+                    <span className="sr-only">Like</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Like</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'dislike', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
+                    <ThumbsDown className="h-4 w-4" />
+                    <span className="sr-only">Dislike</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Dislike</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRegenerate}>
+                    <RefreshCcw className="h-4 w-4" />
+                    <span className="sr-only">Regenerate</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Regenerate</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayPauseClick(message.id, message.content)} disabled={isThisMessageLoading}>
+                    {isThisMessagePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    <span className="sr-only">Play audio</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isThisMessagePlaying ? 'Pause' : 'Play audio'}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={isThisMessageLoading}>
+                    <Download className="h-4 w-4" />
+                    <span className="sr-only">Download audio</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Download audio</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+        </div>
+
+        {message.role === 'user' && (
+          <Avatar className={cn(
+              "h-9 w-9 border-2 bg-muted shadow-sm"
+          )}>
+            <AvatarFallback className="bg-transparent text-foreground">
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </motion.div>
+    )})}
+  </div>
+  )
 
   if (isNewChat && messages.length === 0) {
     return (
-        <div className="flex h-full flex-col items-center justify-center gap-6 p-4 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 p-4 text-center">
             <div className='p-5 bg-primary/10 rounded-full border-4 border-primary/20 shadow-lg'>
               <Logo className='text-primary' />
             </div>
@@ -231,120 +370,8 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   return (
     <TooltipProvider>
       <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
-        <div className="relative mx-auto max-w-3xl px-4 pt-4">
-          {messages.map((message, index) => {
-              const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
-              const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
-              const isLastMessage = index === messages.length - 1;
-              
-            return (
-            <motion.div
-              key={message.id || index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="flex items-start gap-4 py-6"
-            >
-              {message.role !== 'user' && (
-                <Avatar className={cn(
-                    "h-9 w-9 border-2",
-                    "bg-primary text-primary-foreground shadow-sm"
-                )}>
-                  <AvatarFallback className="bg-transparent">
-                    <Bot className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-
-              <div className={cn(
-                "flex-1 space-y-2 max-w-[85%]",
-                message.role === 'user' ? 'ml-auto flex flex-col items-end' : ''
-              )}>
-                <p className={cn(
-                    "font-bold font-headline text-sm",
-                )}>
-                  {message.role === 'user' ? 'You' : 'Progress'}
-                </p>
-                <div className={cn(
-                  "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-xl shadow-sm space-y-4",
-                  "dark:prose-invert",
-                  message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
-                )}>
-                  {message.attachmentDataUri && (
-                    <div className="relative aspect-video rounded-md overflow-hidden border">
-                      <Image src={message.attachmentDataUri} alt="User attachment" layout="fill" objectFit="contain" />
-                    </div>
-                  )}
-                  {message.status === 'thinking' ? (
-                    <ThinkingIndicator />
-                  ) : message.role === 'assistant' ? (
-                    <AssistantMessage content={message.content || ''} isLastMessage={isLastMessage} />
-                  ) : (
-                    <Markdown content={message.content || ''} />
-                  )}
-                </div>
-                {message.role === 'assistant' && message.status !== 'thinking' && message.content && (
-                  <div className="flex items-center gap-1 pt-1 text-muted-foreground">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'like', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
-                          <ThumbsUp className="h-4 w-4" />
-                          <span className="sr-only">Like</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Like</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'dislike', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
-                          <ThumbsDown className="h-4 w-4" />
-                          <span className="sr-only">Dislike</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Dislike</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRegenerate}>
-                          <RefreshCcw className="h-4 w-4" />
-                          <span className="sr-only">Regenerate</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Regenerate</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayPauseClick(message.id, message.content)} disabled={isThisMessageLoading}>
-                          {isThisMessagePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                          <span className="sr-only">Play audio</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{isThisMessagePlaying ? 'Pause' : 'Play audio'}</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={isThisMessageLoading}>
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">Download audio</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Download audio</TooltipContent>
-                    </Tooltip>
-                  </div>
-                )}
-              </div>
-
-              {message.role === 'user' && (
-                <Avatar className={cn(
-                    "h-9 w-9 border-2 bg-muted shadow-sm"
-                )}>
-                  <AvatarFallback className="bg-transparent text-foreground">
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </motion.div>
-          )})}
+        <div className="flex-1 overflow-y-auto" ref={scrollableContainerRef}>
+          {messageContent}
         </div>
         <DialogContent>
           <DialogHeader>
