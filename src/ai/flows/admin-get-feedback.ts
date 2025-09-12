@@ -3,13 +3,28 @@
  * @fileOverview A flow for admins to retrieve user feedback.
  *
  * - getFeedback - A function that fetches all feedback.
- * - GetFeedbackOutput - The return type for the getFeedback function.
+ * - Feedback - The type for a feedback item.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, applicationDefault } from 'firebase-admin/app';
+
+// This is the shape of the data we expect from Firestore.
+export interface Feedback {
+    id: string;
+    userId: string;
+    conversationId: string;
+    messageId: string;
+    messageContent: string;
+    rating: 'like' | 'dislike';
+    reason?: string;
+    submittedAt: Date;
+};
+
+// This is the shape of the data returned by the main function.
+export interface GetFeedbackOutput {
+  feedback: Feedback[];
+};
 
 // Initialize Firebase Admin SDK
 // The SDK will automatically find and use the service account credentials
@@ -26,32 +41,13 @@ if (!getApps().length) {
 const db = getFirestore(adminApp);
 
 
-const FeedbackSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  conversationId: z.string(),
-  messageId: z.string(),
-  messageContent: z.string(),
-  rating: z.enum(['like', 'dislike']),
-  reason: z.string().optional(),
-  submittedAt: z.string().transform((str) => new Date(str)),
-});
-
-const GetFeedbackOutputSchema = z.object({
-  feedback: z.array(FeedbackSchema),
-});
-export type GetFeedbackOutput = z.infer<typeof GetFeedbackOutputSchema>;
-
-
-const getFeedbackFlow = ai.defineFlow(
-  {
-    name: 'getFeedbackFlow',
-    outputSchema: GetFeedbackOutputSchema,
-  },
-  async () => {
+// This is the function we'll call from the frontend.
+// It requires an admin check, which we will do on the frontend for simplicity,
+// but in a production app, you'd want to verify admin status here.
+export async function getFeedback(): Promise<GetFeedbackOutput> {
     const feedbackSnapshot = await db.collection('feedback').orderBy('submittedAt', 'desc').get();
     
-    const feedback: z.infer<typeof FeedbackSchema>[] = [];
+    const feedback: Feedback[] = [];
     feedbackSnapshot.forEach(doc => {
       const data = doc.data();
       feedback.push({
@@ -62,52 +58,30 @@ const getFeedbackFlow = ai.defineFlow(
         messageContent: data.messageContent,
         rating: data.rating,
         reason: data.reason,
-        // Firestore Timestamps need to be converted to ISO strings for Zod parsing
-        submittedAt: (data.submittedAt as Timestamp).toDate().toISOString(),
+        // Firestore Timestamps need to be converted to JS Dates
+        submittedAt: (data.submittedAt as Timestamp).toDate(),
       });
     });
 
     return { feedback };
-  }
-);
-
-
-// This is the function we'll call from the frontend.
-// It requires an admin check, which we will do on the frontend for simplicity,
-// but in a production app, you'd want to verify admin status here.
-export async function getFeedback(): Promise<GetFeedbackOutput> {
-    return getFeedbackFlow();
 }
 
-// We need to slightly adjust the submit feedback flow to use the Admin SDK
-// to write to the 'feedback' collection which has restricted write access.
-const AdminSubmitFeedbackInputSchema = z.object({
-    messageId: z.string(),
-    rating: z.enum(['like', 'dislike']),
-    reason: z.string().optional(),
-    conversationId: z.string(),
-    userId: z.string(),
-    messageContent: z.string(),
-});
 
-const adminSubmitFeedbackFlow = ai.defineFlow(
-    {
-      name: 'adminSubmitFeedbackFlow',
-      inputSchema: AdminSubmitFeedbackInputSchema,
-      outputSchema: z.object({ success: z.boolean() }),
-    },
-    async (input) => {
-        await db.collection('feedback').add({
-            ...input,
-            submittedAt: Timestamp.now(),
-          });
-      return { success: true };
-    }
-);
+// The submitFeedback logic still uses the Admin SDK, so we keep it here.
+// This allows writing to the 'feedback' collection which has restricted write access.
+interface AdminSubmitFeedbackInput {
+    messageId: string;
+    rating: 'like' | 'dislike';
+    reason?: string;
+    conversationId: string;
+    userId: string;
+    messageContent: string;
+};
 
-// We override the old submitFeedback function to use the admin one
-async function submitFeedback(input: z.infer<typeof AdminSubmitFeedbackInputSchema>): Promise<{success: boolean}> {
-    return adminSubmitFeedbackFlow(input);
+export async function submitFeedback(input: AdminSubmitFeedbackInput): Promise<{success: boolean}> {
+    await db.collection('feedback').add({
+        ...input,
+        submittedAt: Timestamp.now(),
+      });
+  return { success: true };
 }
-// We also need to re-export the original flow we are calling now from message-list
-export { submitFeedback };

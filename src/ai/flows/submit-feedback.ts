@@ -26,9 +26,6 @@ const SubmitFeedbackOutputSchema = z.object({
 });
 export type SubmitFeedbackOutput = z.infer<typeof SubmitFeedbackOutputSchema>;
 
-export async function submitFeedback(input: SubmitFeedbackInput): Promise<SubmitFeedbackOutput> {
-  return submitFeedbackFlow(input);
-}
 
 const submitFeedbackFlow = ai.defineFlow(
   {
@@ -53,3 +50,10 @@ const submitFeedbackFlow = ai.defineFlow(
     return { success: true };
   }
 );
+
+
+// This is a re-export of the admin-get-feedback submitFeedback function.
+// We are doing this because the admin-get-feedback file is no longer a genkit flow,
+// but we need to call the submitFeedback function from the message-list component.
+// This is a temporary solution to avoid circular dependencies.
+export { submitFeedback } from '@/ai/flows/admin-get-feedback';
