@@ -74,7 +74,7 @@ const generateResponseBasedOnContextFlow = ai.defineFlow(
     outputSchema: GenerateResponseBasedOnContextOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await generateResponseBasedOnContextPrompt(input);
     return output!;
   }
 );
