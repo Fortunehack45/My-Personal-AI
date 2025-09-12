@@ -134,7 +134,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
         // Remove the 'thinking' placeholder
         setMessages((prev) => prev.filter((msg) => msg.status !== 'thinking'));
     }
-  }, [userProfile]);
+  }, [userProfile, router]);
 
   const handleSendMessage = async (content: string, mode: AiMode, attachmentDataUri?: string) => {
     if (!user) return;
