@@ -39,14 +39,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setLoading(true); // Set loading to true when auth state changes
       if (user) {
         setUser(user);
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             setUserProfile(doc.data() as UserProfile);
+          } else {
+            // This can happen if the user record exists in Auth but not in Firestore
+            setUserProfile(null);
           }
           setLoading(false);
+        }, (error) => {
+            console.error("Error fetching user profile:", error);
+            setUserProfile(null);
+            setLoading(false);
         });
         return () => unsubscribeProfile();
       } else {
@@ -66,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!user && !isAuthPage) {
         router.replace('/login');
+    } else if (user && isAuthPage) {
+        router.replace('/chat');
     }
   }, [user, loading, pathname, router]);
 
@@ -77,9 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = { user, userProfile, loading, updateUserProfile };
 
-  // By rendering `children` directly, we avoid the full-page loader
-  // that was causing the hydration mismatch. Components inside `children`
-  // can still use the `loading` state to show their own placeholders.
+  // Render children immediately to avoid hydration issues.
+  // Child components are responsible for showing their own loading states.
   return (
     <AuthContext.Provider value={value}>
       {children}
