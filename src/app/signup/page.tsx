@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { Eye, EyeOff, MapPin, Calendar as CalendarIcon, Phone } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ export default function SignupPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [dob, setDob] = useState<Date | undefined>();
   const [location, setLocation] = useState<Geolocation | null>(null);
@@ -93,6 +94,7 @@ export default function SignupPage() {
         firstName,
         lastName,
         email,
+        phoneNumber,
         dob: dob.toISOString(),
         location,
         voice: 'gemini-female',
@@ -126,20 +128,32 @@ export default function SignupPage() {
           <CardDescription>Join Progress to start your AI journey.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <div className="space-y-2 md:col-span-2">
+
+             <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <div className="relative flex items-center">
+                    <Phone className="absolute left-3 h-4 w-4 text-muted-foreground" />
+                    <Input id="phoneNumber" type="tel" placeholder="(123) 456-7890" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="pl-10" />
+                </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required />
@@ -155,40 +169,42 @@ export default function SignupPage() {
                 </Button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="dob">Date of Birth</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dob && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dob ? format(dob, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={dob}
-                      onSelect={setDob}
-                      initialFocus
-                      captionLayout='dropdown-buttons'
-                      fromYear={1900}
-                      toYear={new Date().getFullYear()}
-                    />
-                  </PopoverContent>
-                </Popover>
-            </div>
-             <div className="space-y-2">
-               <Label htmlFor="location">Location</Label>
-              <Button id="location" type="button" variant='outline' className='w-full' onClick={handleLocation} disabled={isLocationLoading}>
-                <MapPin className='mr-2 h-4 w-4' />
-                {isLocationLoading ? 'Accessing...' : location ? 'Location Saved' : 'Access Location'}
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                    <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant={"outline"}
+                        className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dob && "text-muted-foreground"
+                        )}
+                        >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dob ? format(dob, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                        mode="single"
+                        selected={dob}
+                        onSelect={setDob}
+                        initialFocus
+                        captionLayout='dropdown-buttons'
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
+                        />
+                    </PopoverContent>
+                    </Popover>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Button id="location" type="button" variant='outline' className='w-full' onClick={handleLocation} disabled={isLocationLoading}>
+                    <MapPin className='mr-2 h-4 w-4' />
+                    {isLocationLoading ? 'Accessing...' : location ? 'Location Saved' : 'Access Location'}
+                </Button>
+                </div>
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">

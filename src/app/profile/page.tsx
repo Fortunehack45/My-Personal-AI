@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Mail, Gift, MapPin, ArrowLeft } from 'lucide-react';
+import { User, Mail, Gift, MapPin, ArrowLeft, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
@@ -57,6 +57,15 @@ export default function ProfilePage() {
                     <p className="text-muted-foreground">{userProfile.email}</p>
                 </div>
             </div>
+            {userProfile.phoneNumber && (
+              <div className="flex items-center gap-4">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div className='text-sm'>
+                      <p className="font-medium">Phone Number</p>
+                      <p className="text-muted-foreground">{userProfile.phoneNumber}</p>
+                  </div>
+              </div>
+            )}
             {userProfile.dob && (
               <div className="flex items-center gap-4">
                   <Gift className="h-5 w-5 text-muted-foreground" />

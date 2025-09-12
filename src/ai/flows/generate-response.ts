@@ -15,6 +15,7 @@ const UserProfileSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   email: z.string().optional(),
+  phoneNumber: z.string().optional(),
   dob: z.string().optional().describe("The user's date of birth in ISO 8601 format."),
   location: z.object({
     latitude: z.number(),
@@ -68,6 +69,9 @@ If context is provided, use it to inform your response, but also rely on your ge
 
 {{#if user}}
 You are speaking to {{user.firstName}}.
+{{#if user.phoneNumber}}
+Their phone number is {{user.phoneNumber}}.
+{{/if}}
 {{#if age}}
 Their age is {{age}}.
 {{/if}}

@@ -10,6 +10,7 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber?: string;
   dob?: string;
   voice: string;
   memory: string;
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    const isAuthPage = pathname === '/login' || pathname === '/signup';
+    const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
 
     if (!user && !isAuthPage) {
         router.replace('/login');
