@@ -54,7 +54,7 @@ Their age is {{user.age}}.
 {{#if user.location}}
 Their location is latitude: {{user.location.latitude}}, longitude: {{user.location.longitude}}.
 {{/if}}
-Personalize your response based on this information where appropriate. For example, if they ask for a recommendation, you can tailor it to their location or age.
+Personalize your response based on this information where appropriate. For example, if they ask for a recommendation, you can tailor it to their location or age. Always address them by their first name when it makes sense.
 {{/if}}
 
 Context:
