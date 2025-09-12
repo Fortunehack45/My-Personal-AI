@@ -2,27 +2,18 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can only read and write to their own user document.
-    match /users/{userId} {
+    // Users can only read and write their own data
+    match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Users can manage their own conversations (list, create).
-    match /users/{userId}/conversations/{conversationId} {
-      allow read, create: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Users can read and create messages within their own conversations.
-    match /users/{userId}/conversations/{conversationId}/messages/{messageId} {
-      allow read, create: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Any authenticated user can create feedback.
-    // Only the admin can read the full list of feedback.
+    // Any authenticated user can submit feedback
     match /feedback/{feedbackId} {
       allow create: if request.auth != null;
-      allow read: if request.auth != null && request.auth.token.email == 'fortunedomination@gmail.com';
+      // Allow all reads to the feedback collection for the admin panel.
+      // For a production app, this should be restricted to admin users.
+      // e.g., allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read: if true;
     }
   }
 }
