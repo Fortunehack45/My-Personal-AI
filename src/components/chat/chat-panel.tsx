@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -6,7 +7,7 @@ import { db } from '@/lib/firebase';
 import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer, AiMode } from './message-composer';
-import { generateResponse } from '@/ai/flows/generate-response';
+import { generateResponse as generateResponseFlow } from '@/ai/flows/generate-response';
 import { generateImage } from '@/ai/flows/generate-image';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { useAuth } from '@/hooks/use-auth';
@@ -109,7 +110,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
           saveMessage('assistant', `Image generation complete for: "${prompt}"`, convId, imageDataUri);
 
       } else {
-        const { response } = await generateResponse({
+        const { response } = await generateResponseFlow({
           conversationId: convId,
           message: prompt,
           user: userProfile || undefined,
