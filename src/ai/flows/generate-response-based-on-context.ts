@@ -126,6 +126,11 @@ const generateResponseBasedOnContextFlow = ai.defineFlow(
     };
     
     const {output} = await generateResponseBasedOnContextPrompt(promptInput);
-    return output!;
+    
+    if (!output) {
+      return { response: "Sorry, I couldn't generate a response for that. Please try again." };
+    }
+
+    return output;
   }
 );
