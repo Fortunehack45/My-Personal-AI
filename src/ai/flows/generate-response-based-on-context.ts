@@ -11,10 +11,10 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const UserProfileSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string(),
-  age: z.number(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().optional(),
+  age: z.number().optional(),
   location: z.object({
     latitude: z.number(),
     longitude: z.number(),
@@ -48,9 +48,11 @@ Your goal is to provide accurate and helpful answers to the user's questions.
 
 If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a simple conversational turn, respond naturally and conversationally.
 
-{{#if user}}
+{{#if user.firstName}}
 You are speaking to {{user.firstName}}.
+{{#if user.age}}
 Their age is {{user.age}}.
+{{/if}}
 {{#if user.location}}
 Their location is latitude: {{user.location.latitude}}, longitude: {{user.location.longitude}}.
 {{/if}}
