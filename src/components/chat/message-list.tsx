@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SparrowIcon, Logo } from '@/components/logo';
 import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
-import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause } from 'lucide-react';
+import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -27,6 +27,10 @@ type MessageListProps = {
 
 type AudioState = 'idle' | 'loading' | 'playing' | 'paused';
 type FeedbackState = 'idle' | 'loading';
+type ActiveAudio = {
+  messageId: string;
+  audioDataUri: string;
+};
 
 const ThinkingIndicator = () => (
     <div className="flex items-center gap-2">
@@ -41,36 +45,19 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
   const { userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>('idle');
+  const [activeAudio, setActiveAudio] = useState<ActiveAudio | null>(null);
   const [feedbackState, setFeedbackState] = useState<Record<'like' | 'dislike', FeedbackState>>({ like: 'idle', dislike: 'idle' });
 
-  const handlePlayAudio = async (text: string) => {
-    if (audioRef.current && audioState === 'playing') {
-      audioRef.current.pause();
-      setAudioState('paused');
-      return;
+  const getAudio = async (messageId: string, text: string) => {
+    if (activeAudio?.messageId === messageId) {
+      return activeAudio.audioDataUri;
     }
-
-    if (audioRef.current && audioState === 'paused') {
-      audioRef.current.play();
-      setAudioState('playing');
-      return;
-    }
-
     setAudioState('loading');
     try {
       const { audioDataUri } = await textToSpeech({ text, voice: userProfile?.voice });
-      const audio = new Audio(audioDataUri);
-      audioRef.current = audio;
-
-      audio.onplay = () => setAudioState('playing');
-      audio.onpause = () => setAudioState('paused');
-      audio.onended = () => {
-        setAudioState('idle');
-        audioRef.current = null;
-      };
-      
-      audio.play();
-
+      setActiveAudio({ messageId, audioDataUri });
+      setAudioState('idle');
+      return audioDataUri;
     } catch (error) {
       console.error("Error generating audio:", error);
       setAudioState('idle');
@@ -79,7 +66,50 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
         title: 'Audio Error',
         description: 'Failed to generate audio. Please try again.',
       });
+      return null;
     }
+  };
+
+  const handlePlayAudio = async (messageId: string, text: string) => {
+    if (audioRef.current && audioState === 'playing') {
+      audioRef.current.pause();
+      setAudioState('paused');
+      return;
+    }
+
+    if (audioRef.current && audioState === 'paused' && activeAudio?.messageId === messageId) {
+      audioRef.current.play();
+      setAudioState('playing');
+      return;
+    }
+
+    const audioDataUri = await getAudio(messageId, text);
+    if (!audioDataUri) return;
+
+    const audio = new Audio(audioDataUri);
+    audioRef.current = audio;
+
+    audio.onplay = () => setAudioState('playing');
+    audio.onpause = () => setAudioState('paused');
+    audio.onended = () => {
+      setAudioState('idle');
+      audioRef.current = null;
+      setActiveAudio(null);
+    };
+    
+    audio.play();
+  };
+
+  const handleDownloadAudio = async (messageId: string, text: string) => {
+    const audioDataUri = await getAudio(messageId, text);
+    if (!audioDataUri) return;
+
+    const link = document.createElement('a');
+    link.href = audioDataUri;
+    link.download = 'progress-reply.wav';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleFeedback = async (messageId: string, rating: 'like' | 'dislike') => {
@@ -98,13 +128,11 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
         description: 'Failed to submit feedback. Please try again.',
       });
     } finally {
-       // After a short delay, reset the state to allow user to change their mind
       setTimeout(() => {
         setFeedbackState(prev => ({ ...prev, [rating]: 'idle' }));
       }, 1000);
     }
   };
-
 
   if (!messages.length) {
     return (
@@ -195,12 +223,21 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayAudio(message.content)} disabled={audioState === 'loading'}>
-                        {audioState === 'playing' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayAudio(message.id, message.content)} disabled={audioState === 'loading' && activeAudio?.messageId !== message.id}>
+                        {audioState === 'playing' && activeAudio?.messageId === message.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         <span className="sr-only">Play audio</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>{audioState === 'playing' ? 'Pause' : 'Play audio'}</TooltipContent>
+                    <TooltipContent>{audioState === 'playing' && activeAudio?.messageId === message.id ? 'Pause' : 'Play audio'}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={audioState === 'loading' && activeAudio?.messageId !== message.id}>
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download audio</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Download audio</TooltipContent>
                   </Tooltip>
                 </div>
               )}
