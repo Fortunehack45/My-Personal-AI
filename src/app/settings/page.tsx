@@ -1,16 +1,27 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
     <div className="p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div>
-            <h1 className="font-headline text-3xl">Settings</h1>
-            <p className="text-muted-foreground">Manage your account and application settings.</p>
+        <div className="flex items-center justify-between">
+            <div>
+                <h1 className="font-headline text-3xl">Settings</h1>
+                <p className="text-muted-foreground">Manage your account and application settings.</p>
+            </div>
+             <Button asChild variant="outline">
+                <Link href="/chat">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Chat
+                </Link>
+            </Button>
         </div>
         <Card>
           <CardHeader>

@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Mail, Calendar, MapPin } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ProfilePage() {
   const { user, userProfile } = useAuth();
@@ -21,6 +23,14 @@ export default function ProfilePage() {
 
   return (
     <div className="p-4 md:p-8">
+        <div className="max-w-2xl mx-auto mb-4">
+             <Button asChild variant="outline">
+                <Link href="/chat">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Chat
+                </Link>
+            </Button>
+        </div>
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
