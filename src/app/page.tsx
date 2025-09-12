@@ -1,18 +1,26 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <p>Loading...</p>
-        </div>
-      );
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.replace('/chat');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [user, loading, router]);
 
-  // The AuthProvider will handle redirection, so this component can be minimal.
-  return null;
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <p>Loading...</p>
+    </div>
+  );
 }
