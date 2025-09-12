@@ -61,8 +61,8 @@ const ThinkingIndicator = () => (
     </div>
 );
 
-const AssistantMessage = ({ content }: { content: string }) => {
-    const displayedContent = useTypingEffect(content, 5000);
+const AssistantMessage = ({ content, isLastMessage }: { content: string, isLastMessage: boolean }) => {
+    const displayedContent = useTypingEffect(content, isLastMessage);
     return <Markdown content={displayedContent} />;
 };
 
@@ -239,6 +239,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
           {messages.map((message, index) => {
               const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
               const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
+              const isLastMessage = index === messages.length - 1;
               
             return (
             <motion.div
@@ -276,7 +277,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
                   {message.status === 'thinking' ? (
                     <ThinkingIndicator />
                   ) : message.role === 'assistant' ? (
-                    <AssistantMessage content={message.content || ''} />
+                    <AssistantMessage content={message.content || ''} isLastMessage={isLastMessage} />
                   ) : (
                     <Markdown content={message.content || ''} />
                   )}

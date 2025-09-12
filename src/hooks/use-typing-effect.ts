@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 
 const WPM_TO_CPS = (wpm: number) => (wpm * 5) / 60;
 
-export const useTypingEffect = (text: string, wordsPerMinute = 250) => {
+export const useTypingEffect = (text: string, isLastMessage: boolean, wordsPerMinute = 5000) => {
     const [displayedText, setDisplayedText] = useState('');
     // Cap WPM to a reasonable number to prevent performance issues
     const cappedWpm = Math.min(wordsPerMinute, 1000); 
@@ -22,8 +22,8 @@ export const useTypingEffect = (text: string, wordsPerMinute = 250) => {
     useEffect(() => {
         if (!text) return;
 
-        // If text is short, just display it
-        if (text.length < 20) {
+        // If the message is not the last one, or is short, display it immediately.
+        if (!isLastMessage || text.length < 20) {
             setDisplayedText(text);
             return;
         }
@@ -31,7 +31,8 @@ export const useTypingEffect = (text: string, wordsPerMinute = 250) => {
         setDisplayedText('');
         let i = 0;
         const timer = setInterval(() => {
-            setDisplayedText(prev => prev + text.charAt(i));
+            // Use substring to avoid skipping characters on re-renders
+            setDisplayedText(text.substring(0, i + 1));
             i++;
             if (i >= text.length) {
                 clearInterval(timer);
@@ -41,7 +42,7 @@ export const useTypingEffect = (text: string, wordsPerMinute = 250) => {
         return () => {
             clearInterval(timer);
         };
-    }, [text, interval]);
+    }, [text, interval, isLastMessage]);
 
     // Append a cursor to the end of the text while typing
     const isTyping = displayedText.length < text.length;
