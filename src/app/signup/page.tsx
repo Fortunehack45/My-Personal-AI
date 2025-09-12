@@ -92,6 +92,7 @@ export default function SignupPage() {
         age: parseInt(age, 10),
         location,
         voice: 'algenib',
+        memory: '',
       });
 
       toast({
@@ -163,7 +164,7 @@ export default function SignupPage() {
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full font-headline text-base bg-accent text-accent-foreground hover:bg-accent/90" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Creating Account...'}
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
             <p className='text-sm text-muted-foreground'>
               Already have an account?{' '}

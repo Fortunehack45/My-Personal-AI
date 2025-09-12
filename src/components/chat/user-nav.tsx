@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, BrainCircuit } from 'lucide-react';
 
 export function UserNav() {
   const { user, userProfile } = useAuth();
@@ -55,6 +55,12 @@ export function UserNav() {
             <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/memory">
+                <BrainCircuit className="mr-2 h-4 w-4" />
+                <span>Memory</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

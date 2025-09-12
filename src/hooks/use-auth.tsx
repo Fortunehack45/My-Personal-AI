@@ -12,6 +12,7 @@ export type UserProfile = {
   email: string;
   age: number;
   voice: string;
+  memory: string;
   location?: {
     latitude: number;
     longitude: number;

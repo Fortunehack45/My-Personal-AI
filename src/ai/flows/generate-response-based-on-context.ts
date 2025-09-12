@@ -19,6 +19,7 @@ const UserProfileSchema = z.object({
     latitude: z.number(),
     longitude: z.number(),
   }).optional(),
+  memory: z.string().optional().describe("A space for the user to store notes, preferences, or other information they want the AI to remember."),
 }).describe("The user's profile information.");
 
 const GenerateResponseBasedOnContextInputSchema = z.object({
@@ -48,7 +49,7 @@ Your goal is to provide accurate and helpful answers to the user's questions.
 
 If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a simple conversational turn, respond naturally and conversationally.
 
-{{#if user.firstName}}
+{{#if user}}
 You are speaking to {{user.firstName}}.
 {{#if user.age}}
 Their age is {{user.age}}.
@@ -57,6 +58,13 @@ Their age is {{user.age}}.
 Their location is latitude: {{user.location.latitude}}, longitude: {{user.location.longitude}}.
 {{/if}}
 Personalize your response based on this information where appropriate. For example, if they ask for a recommendation, you can tailor it to their location or age. Always address them by their first name when it makes sense.
+
+{{#if user.memory}}
+The user has provided the following information to remember. Use it to inform your responses:
+---
+{{user.memory}}
+---
+{{/if}}
 {{/if}}
 
 Context:
