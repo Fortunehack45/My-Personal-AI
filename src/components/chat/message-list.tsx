@@ -18,6 +18,7 @@ import { useState, useRef } from 'react';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { submitFeedback } from '@/ai/flows/submit-feedback';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 type MessageListProps = {
   messages: Message[];
@@ -37,6 +38,7 @@ const ThinkingIndicator = () => (
 
 export function MessageList({ messages, onRegenerate }: MessageListProps) {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>('idle');
   const [feedbackState, setFeedbackState] = useState<Record<'like' | 'dislike', FeedbackState>>({ like: 'idle', dislike: 'idle' });
@@ -56,7 +58,7 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
 
     setAudioState('loading');
     try {
-      const { audioDataUri } = await textToSpeech({ text });
+      const { audioDataUri } = await textToSpeech({ text, voice: userProfile?.voice });
       const audio = new Audio(audioDataUri);
       audioRef.current = audio;
 

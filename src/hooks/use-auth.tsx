@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -11,6 +11,7 @@ export type UserProfile = {
   lastName: string;
   email: string;
   age: number;
+  voice: string;
   location?: {
     latitude: number;
     longitude: number;
@@ -21,6 +22,7 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,15 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const fetchUserProfile = async (user: User) => {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      setUserProfile(userDoc.data() as UserProfile);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // Fetch user profile from Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setUserProfile(userDoc.data() as UserProfile);
-        }
+        await fetchUserProfile(user);
       } else {
         setUserProfile(null);
       }
@@ -62,9 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (user) {
+      await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
+      await fetchUserProfile(user); // Re-fetch to update state
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, updateUserProfile }}>
       {loading ? (
           <div className="flex min-h-screen items-center justify-center bg-background">
             <p>Loading...</p>

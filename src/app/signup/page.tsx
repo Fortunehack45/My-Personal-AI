@@ -91,6 +91,7 @@ export default function SignupPage() {
         email,
         age: parseInt(age, 10),
         location,
+        voice: 'Algenib',
       });
 
       toast({

@@ -6,10 +6,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Monitor, Moon, Sun, Volume2 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
+
+const voices = ["Algenib", "Antares", "Arcturus", "Canopus", "Capella", "Hadrian"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { userProfile, updateUserProfile } = useAuth();
+  const { toast } = useToast();
+
+  const handleVoiceChange = async (newVoice: string) => {
+    try {
+      await updateUserProfile({ voice: newVoice });
+      toast({
+        title: 'Voice Updated',
+        description: `The AI voice has been changed to ${newVoice}.`,
+      });
+      // Play a sample
+      const { audioDataUri } = await textToSpeech({ text: `Hello, this is the new ${newVoice} voice.`, voice: newVoice });
+      const audio = new Audio(audioDataUri);
+      audio.play();
+
+    } catch (error) {
+      console.error('Failed to update voice', error);
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: 'Could not update your voice preference.',
+      });
+    }
+  };
 
   return (
     <div className="p-4 md:p-8">
@@ -58,6 +87,32 @@ export default function SettingsPage() {
                 </RadioGroup>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Voice Settings</CardTitle>
+            <CardDescription>Select the voice for the text-to-speech feature.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              defaultValue={userProfile?.voice || 'Algenib'}
+              onValueChange={handleVoiceChange}
+              className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+            >
+              {voices.map((voice) => (
+                <Label
+                  key={voice}
+                  htmlFor={voice}
+                  className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-ring"
+                >
+                  <Volume2 className="h-6 w-6" />
+                  <RadioGroupItem value={voice} id={voice} className="sr-only" />
+                  <span>{voice}</span>
+                </Label>
+              ))}
+            </RadioGroup>
           </CardContent>
         </Card>
 
