@@ -129,7 +129,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                      <Button type="button" size="icon" variant="ghost" className="h-10 w-10 shrink-0 rounded-full text-muted-foreground" disabled={anyLoading}>
+                    <Button type="button" size="icon" variant="ghost" className="h-10 w-10 shrink-0 rounded-full text-muted-foreground" disabled={anyLoading}>
                         <Paperclip className="h-5 w-5" />
                         <span className="sr-only">Attach file</span>
                     </Button>
