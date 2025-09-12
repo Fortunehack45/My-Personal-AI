@@ -44,7 +44,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
             <CardDescription>Configure how you receive notifications.</CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
             <p className="text-sm text-muted-foreground">Notification settings will be available here in a future update.</p>
           </CardContent>
