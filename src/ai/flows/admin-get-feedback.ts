@@ -10,15 +10,12 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App } from 'firebase-admin/app';
-import { credential } from 'firebase-admin';
+import { firebaseAdminConfig } from '@/lib/firebase-admin-config';
 
 // Initialize Firebase Admin SDK
 let adminApp: App;
 if (!getApps().length) {
-  adminApp = initializeApp({
-    // Use service account credentials if available (for production)
-    // credential: credential.applicationDefault(),
-  });
+  adminApp = initializeApp(firebaseAdminConfig);
 } else {
   adminApp = getApps()[0];
 }
