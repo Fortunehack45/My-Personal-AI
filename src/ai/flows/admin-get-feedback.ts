@@ -7,7 +7,7 @@
  */
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
 import serviceAccount from '../../../serviceAccountKey.json';
 
 // This is the shape of the data we expect from Firestore.
@@ -31,8 +31,7 @@ export interface GetFeedbackOutput {
 let adminApp: App;
 if (!getApps().length) {
   adminApp = initializeApp({
-    // Directly use the imported service account object for initialization
-    credential: cert(serviceAccount),
+    credential: cert(serviceAccount as ServiceAccount),
   });
 } else {
   adminApp = getApps()[0];
