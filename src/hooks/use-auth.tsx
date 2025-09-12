@@ -10,7 +10,7 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   email: string;
-  age: number;
+  dob?: string;
   voice: string;
   memory: string;
   voiceModeEnabled: boolean;

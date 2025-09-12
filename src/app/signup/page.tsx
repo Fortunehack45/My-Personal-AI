@@ -12,7 +12,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, MapPin } from 'lucide-react';
+import { Eye, EyeOff, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 type Geolocation = {
   latitude: number;
@@ -27,7 +31,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [age, setAge] = useState('');
+  const [dob, setDob] = useState<Date | undefined>();
   const [location, setLocation] = useState<Geolocation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
@@ -68,7 +72,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || !password || !age) {
+    if (!firstName || !lastName || !email || !password || !dob) {
         toast({
             variant: 'destructive',
             title: 'Missing Fields',
@@ -89,7 +93,7 @@ export default function SignupPage() {
         firstName,
         lastName,
         email,
-        age: parseInt(age, 10),
+        dob: dob.toISOString(),
         location,
         voice: 'gemini-female',
         memory: '',
@@ -152,8 +156,32 @@ export default function SignupPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
-              <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} required />
+              <Label htmlFor="dob">Date of Birth</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dob && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dob ? format(dob, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={dob}
+                      onSelect={setDob}
+                      initialFocus
+                      captionLayout='dropdown-buttons'
+                      fromYear={1900}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </PopoverContent>
+                </Popover>
             </div>
              <div className="space-y-2">
                <Label htmlFor="location">Location</Label>

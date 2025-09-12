@@ -15,7 +15,7 @@ const UserProfileSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   email: z.string().optional(),
-  age: z.number().optional(),
+  dob: z.string().optional().describe("The user's date of birth in ISO 8601 format."),
   location: z.object({
     latitude: z.number(),
     longitude: z.number(),
@@ -45,7 +45,10 @@ export async function generateResponse(input: GenerateResponseInput): Promise<Ge
 
 const generateResponsePrompt = ai.definePrompt({
   name: 'generateResponsePrompt',
-  input: {schema: GenerateResponseInputSchema},
+  input: {schema: z.object({
+    ...GenerateResponseInputSchema.shape,
+    age: z.number().optional().describe("The user's age, calculated from their date of birth."),
+  })},
   output: {schema: GenerateResponseOutputSchema},
   prompt: `You are a helpful and friendly AI assistant named Progress. Your creator is a young innovator named Fortune.
 
@@ -65,8 +68,8 @@ If context is provided, use it to inform your response, but also rely on your ge
 
 {{#if user}}
 You are speaking to {{user.firstName}}.
-{{#if user.age}}
-Their age is {{user.age}}.
+{{#if age}}
+Their age is {{age}}.
 {{/if}}
 {{#if user.location}}
 Their location is latitude: {{user.location.latitude}}, longitude: {{user.location.longitude}}.
@@ -103,7 +106,22 @@ const generateResponseFlow = ai.defineFlow(
     outputSchema: GenerateResponseOutputSchema,
   },
   async input => {
-    const {output} = await generateResponsePrompt(input);
+    let age: number | undefined;
+    if (input.user?.dob) {
+      try {
+        const birthDate = new Date(input.user.dob);
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+      } catch (e) {
+        console.error("Could not parse date of birth:", input.user.dob);
+      }
+    }
+
+    const {output} = await generateResponsePrompt({...input, age});
     
     if (!output) {
       return { response: "Sorry, I couldn't generate a response for that. Please try again." };

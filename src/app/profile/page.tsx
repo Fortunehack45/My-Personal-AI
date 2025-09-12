@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Mail, Gift, MapPin, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 export default function ProfilePage() {
   const { user, userProfile } = useAuth();
@@ -56,13 +57,15 @@ export default function ProfilePage() {
                     <p className="text-muted-foreground">{userProfile.email}</p>
                 </div>
             </div>
-            <div className="flex items-center gap-4">
-                <Gift className="h-5 w-5 text-muted-foreground" />
-                <div className='text-sm'>
-                    <p className="font-medium">Age</p>
-                    <p className="text-muted-foreground">{userProfile.age}</p>
-                </div>
-            </div>
+            {userProfile.dob && (
+              <div className="flex items-center gap-4">
+                  <Gift className="h-5 w-5 text-muted-foreground" />
+                  <div className='text-sm'>
+                      <p className="font-medium">Date of Birth</p>
+                      <p className="text-muted-foreground">{format(new Date(userProfile.dob), "PPP")}</p>
+                  </div>
+              </div>
+            )}
             {userProfile.location && (
                 <div className="flex items-center gap-4">
                     <MapPin className="h-5 w-5 text-muted-foreground" />
