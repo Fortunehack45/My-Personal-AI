@@ -1,20 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
-  const router = useRouter();
+  const { loading } = useAuth();
 
-  useEffect(() => {
-    // For this skeleton, we'll just redirect to the login page.
-    // In a real app, you'd check for an active session.
-    router.replace('/login');
-  }, [router]);
+  if (loading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <p>Loading...</p>
+        </div>
+      );
+  }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <p>Loading...</p>
-    </div>
-  );
+  // The AuthProvider will handle redirection, so this component can be minimal.
+  return null;
 }

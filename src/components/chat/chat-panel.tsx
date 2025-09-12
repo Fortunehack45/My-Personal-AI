@@ -5,6 +5,7 @@ import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
 import { generateResponseBasedOnContext } from '@/ai/flows/generate-response-based-on-context';
+import { useAuth } from '@/hooks/use-auth';
 
 type ChatPanelProps = {
   messages: Message[];
@@ -16,6 +17,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
   const [isLoading, setIsLoading] = useState(false);
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
+  const { userProfile } = useAuth();
 
   const generateResponse = useCallback(async (prompt: string, messagesToUpdate: Message[]) => {
     setIsLoading(true);
@@ -33,6 +35,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       const { response } = await generateResponseBasedOnContext({
         conversationId: conversationId || 'new',
         message: prompt,
+        user: userProfile || undefined,
       });
 
       const words = response.split(/(\s+)/);
@@ -82,7 +85,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
     } finally {
         setIsLoading(false);
     }
-  }, [conversationId]);
+  }, [conversationId, userProfile]);
 
   const handleSendMessage = async (content: string) => {
     const newMessage: Message = {

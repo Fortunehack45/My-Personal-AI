@@ -10,17 +10,29 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const UserProfileSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  age: z.number(),
+  location: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }).optional(),
+}).describe("The user's profile information.");
+
 const GenerateResponseBasedOnContextInputSchema = z.object({
   conversationId: z.string().describe('The ID of the conversation.'),
   message: z.string().describe('The user message to respond to.'),
   retrievedContext: z.string().optional().describe('The context retrieved from vector embeddings.'),
+  user: UserProfileSchema.optional().describe("The user's profile information, if available."),
 });
 export type GenerateResponseBasedOnContextInput = z.infer<typeof GenerateResponseBasedOnContextInputSchema>;
 
 const GenerateResponseBasedOnContextOutputSchema = z.object({
   response: z.string().describe('The AI generated response.'),
 });
-export type GenerateResponseBasedOnContextOutput = z.infer<typeof GenerateResponseBasedOnContextOutputSchema>;
+export type GenerateResponseBasedOn-on-context-output = z.infer<typeof GenerateResponseBasedOnContextOutputSchema>;
 
 export async function generateResponseBasedOnContext(input: GenerateResponseBasedOnContextInput): Promise<GenerateResponseBasedOnContextOutput> {
   return generateResponseBasedOnContextFlow(input);
@@ -35,6 +47,15 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
 Your goal is to provide accurate and helpful answers to the user's questions.
 
 If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a greeting or a simple conversational turn, respond naturally and conversationally.
+
+{{#if user}}
+You are speaking to {{user.firstName}}.
+Their age is {{user.age}}.
+{{#if user.location}}
+Their location is latitude: {{user.location.latitude}}, longitude: {{user.location.longitude}}.
+{{/if}}
+Personalize your response based on this information where appropriate. For example, if they ask for a recommendation, you can tailor it to their location or age.
+{{/if}}
 
 Context:
 {{#if retrievedContext}}
@@ -53,7 +74,7 @@ const generateResponseBasedOnContextFlow = ai.defineFlow(
     outputSchema: GenerateResponseBasedOnContextOutputSchema,
   },
   async input => {
-    const {output} = await generateResponseBasedOnContextPrompt(input);
+    const {output} = await prompt(input);
     return output!;
   }
 );
