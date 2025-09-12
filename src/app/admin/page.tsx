@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { getFeedback, Feedback } from '@/ai/flows/admin-get-feedback';
+import { getFeedback, Feedback } from '@/lib/firebase-admin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -121,7 +121,7 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   )}
-                </TableBody>
+                </Body>
               </Table>
             )}
           </CardContent>

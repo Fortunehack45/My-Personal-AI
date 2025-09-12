@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useState, useRef, useEffect } from 'react';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
-import { submitFeedback } from '@/ai/flows/admin-get-feedback';
+import { submitFeedback } from '@/lib/firebase-admin';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useParams } from 'next/navigation';
