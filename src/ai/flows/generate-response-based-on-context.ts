@@ -26,7 +26,7 @@ const UserProfileSchema = z.object({
 const GenerateResponseBasedOnContextInputSchema = z.object({
   conversationId: z.string().describe('The ID of the conversation.'),
   message: z.string().describe('The user message to respond to.'),
-  mode: z.enum(['standard', 'search', 'thinkDeep']).describe('The AI operational mode.').optional(),
+  mode: z.enum(['standard', 'search', 'thinkDeep', 'image']).describe('The AI operational mode.').optional(),
   attachmentDataUri: z.string().optional().describe(
     "An optional file attachment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
