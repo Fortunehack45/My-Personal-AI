@@ -150,7 +150,7 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
               message.role === 'user' ? 'order-2 text-right' : ''
             )}>
               <p className="font-bold font-headline text-sm">
-                {message.role === 'user' ? 'You' : 'Chatty Sparrow'}
+                {message.role === 'user' ? 'You' : 'Progress'}
               </p>
               <div className={cn(
                 "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",

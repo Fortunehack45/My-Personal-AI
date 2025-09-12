@@ -116,7 +116,7 @@ export default function SignupPage() {
         <CardHeader className="items-center text-center space-y-4">
           <Logo className="mb-4" />
           <CardTitle className="font-headline text-3xl">Create an Account</CardTitle>
-          <CardDescription>Join Chatty Sparrow to start your AI journey.</CardDescription>
+          <CardDescription>Join Progress to start your AI journey.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">

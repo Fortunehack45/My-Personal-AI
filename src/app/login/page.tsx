@@ -43,7 +43,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-2xl rounded-2xl">
         <CardHeader className="items-center text-center space-y-4">
           <Logo className="mb-4" />
-          <CardTitle className="font-headline text-3xl">Welcome to Chatty Sparrow</CardTitle>
+          <CardTitle className="font-headline text-3xl">Welcome to Progress</CardTitle>
           <CardDescription>Enter your credentials to start chatting.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>

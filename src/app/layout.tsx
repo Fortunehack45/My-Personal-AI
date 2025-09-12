@@ -6,7 +6,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Chatty Sparrow',
+  title: 'Progress',
   description: 'A conversational AI product by Firebase Studio',
 };
 

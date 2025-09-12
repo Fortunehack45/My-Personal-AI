@@ -42,7 +42,7 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
   name: 'generateResponseBasedOnContextPrompt',
   input: {schema: GenerateResponseBasedOnContextInputSchema},
   output: {schema: GenerateResponseBasedOnContextOutputSchema},
-  prompt: `You are a helpful and friendly AI assistant named Chatty Sparrow.
+  prompt: `You are a helpful and friendly AI assistant named Progress.
 
 Your goal is to provide accurate and helpful answers to the user's questions.
 

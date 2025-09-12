@@ -80,7 +80,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Ask Chatty Sparrow anything..."
+                      placeholder="Ask Progress anything..."
                       className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-3.5 pr-14 text-base"
                       rows={1}
                       disabled={anyLoading}

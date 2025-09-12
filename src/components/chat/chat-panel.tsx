@@ -146,7 +146,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
         <div className="mx-auto max-w-3xl p-4 space-y-4">
           <MessageComposer onSendMessage={handleSendMessage} isLoading={isLoading} />
           <p className="text-center text-xs text-muted-foreground px-4">
-            Chatty Sparrow may produce inaccurate information about people, places, or facts.
+            Progress may produce inaccurate information about people, places, or facts.
           </p>
         </div>
       </div>

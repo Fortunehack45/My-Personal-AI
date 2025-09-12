@@ -1,4 +1,4 @@
-# Chatty Sparrow
+# Progress
 
 This is a full-stack conversational AI product, built with Next.js, Tailwind CSS, and powered by Genkit.
 
