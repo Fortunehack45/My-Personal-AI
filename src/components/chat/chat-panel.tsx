@@ -35,13 +35,13 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       const { response } = await generateResponseBasedOnContext({
         conversationId: conversationId || 'new',
         message: prompt,
-        user: userProfile ? userProfile : undefined,
+        user: userProfile || undefined,
       });
 
       const words = response.split(/(\s+)/);
       let typedContent = '';
       
-      const wpm = 20000;
+      const wpm = 25000;
       const averageWordLength = 5;
       const delayPerChar = 60000 / (wpm * averageWordLength);
       
