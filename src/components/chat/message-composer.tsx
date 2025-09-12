@@ -110,7 +110,32 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
 
   return (
     <TooltipProvider>
-        <div className="flex flex-col w-full gap-3">
+        <div className="flex w-full items-end gap-2">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button 
+                      type="button" 
+                      size="icon" 
+                      variant="ghost"
+                      className={cn("h-10 w-10 shrink-0 rounded-full text-muted-foreground", recordingState === 'recording' && 'text-destructive animate-pulse')}
+                      onClick={handleMicClick}
+                      disabled={anyLoading}
+                    >
+                        {recordingState === 'recording' ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                        <span className="sr-only">{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                      <Button type="button" size="icon" variant="ghost" className="h-10 w-10 shrink-0 rounded-full text-muted-foreground" disabled={anyLoading}>
+                        <Paperclip className="h-5 w-5" />
+                        <span className="sr-only">Attach file</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Attach file (coming soon)</TooltipContent>
+            </Tooltip>
             <div className="relative flex-1">
                  <Textarea
                     ref={textareaRef}
@@ -118,53 +143,27 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={recordingState === 'transcribing' ? 'Transcribing...' : "Ask Progress anything..."}
-                    className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm pl-14 pr-20 py-3.5 text-base"
+                    className="min-h-[40px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-2 text-base"
                     rows={1}
                     disabled={anyLoading}
                 />
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button 
-                          type="button" 
-                          size="icon" 
-                          variant="ghost"
-                          className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full text-muted-foreground", recordingState === 'recording' && 'text-destructive animate-pulse')}
-                          onClick={handleMicClick}
-                          disabled={anyLoading}
-                        >
-                            {recordingState === 'recording' ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                            <span className="sr-only">{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                         <Button type="button" size="icon" variant="ghost" className="absolute left-14 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full text-muted-foreground" disabled={anyLoading}>
-                            <Paperclip className="h-5 w-5" />
-                            <span className="sr-only">Attach file</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Attach file (coming soon)</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            type="submit"
-                            size="icon"
-                            variant="default"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                            disabled={!message.trim() || anyLoading}
-                            onClick={handleSendMessage}
-                        >
-                            <SendHorizonal className="h-4 w-4" />
-                            <span className="sr-only">Send</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Send message</TooltipContent>
-                </Tooltip>
             </div>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        type="submit"
+                        size="icon"
+                        variant="default"
+                        className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                        disabled={!message.trim() || anyLoading}
+                        onClick={handleSendMessage}
+                    >
+                        <SendHorizonal className="h-5 w-5" />
+                        <span className="sr-only">Send</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Send message</TooltipContent>
+            </Tooltip>
         </div>
     </TooltipProvider>
   );
