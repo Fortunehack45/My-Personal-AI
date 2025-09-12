@@ -76,13 +76,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = { user, userProfile, loading, updateUserProfile };
 
+  // By rendering `children` directly, we avoid the full-page loader
+  // that was causing the hydration mismatch. Components inside `children`
+  // can still use the `loading` state to show their own placeholders.
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <p>Loading...</p>
-        </div>
-      ) : children}
+      {children}
     </AuthContext.Provider>
   );
 }
