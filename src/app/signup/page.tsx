@@ -91,7 +91,7 @@ export default function SignupPage() {
         email,
         age: parseInt(age, 10),
         location,
-        voice: 'algenib',
+        voice: 'gemini-female',
         memory: '',
         voiceModeEnabled: false,
       });
@@ -164,12 +164,12 @@ export default function SignupPage() {
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">
-            <Button type="submit" className="w-full font-headline text-base bg-accent text-accent-foreground hover:bg-accent/90" disabled={isLoading}>
+            <Button type="submit" className="w-full font-headline text-base bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
             <p className='text-sm text-muted-foreground'>
               Already have an account?{' '}
-              <Link href="/login" className='font-medium text-accent hover:underline'>
+              <Link href="/login" className='font-medium text-primary hover:underline'>
                 Login
               </Link>
             </p>

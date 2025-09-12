@@ -13,7 +13,7 @@ import { UserNav } from '@/components/chat/user-nav';
 import { ConversationList } from '@/components/chat/conversation-list';
 import { ContextPanel } from '@/components/chat/context-panel';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, MessageSquare, Settings2 } from 'lucide-react';
+import { Search, Plus, MessageSquare, Settings2, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
@@ -27,7 +27,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           </SidebarHeader>
           <SidebarContent>
             <div className="space-y-2 p-2">
-                <Button className="w-full justify-start font-headline bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                <Button className="w-full justify-start font-headline bg-primary text-primary-foreground hover:bg-primary/90" asChild>
                     <Link href="/chat">
                         <Plus className="mr-2 h-4 w-4" />
                         New Conversation
@@ -40,8 +40,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             <Separator className="my-2" />
             <div className='p-2 flex flex-col gap-2'>
               <Button variant="ghost" className="w-full justify-start">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Help
+                <FileText className="mr-2 h-4 w-4" />
+                Context
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
                 <Link href="/settings">
@@ -61,12 +61,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             <div className="ml-auto flex items-center gap-4">
-              <form>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search" className="pl-8" />
-                  </div>
-              </form>
               <UserNav />
             </div>
 

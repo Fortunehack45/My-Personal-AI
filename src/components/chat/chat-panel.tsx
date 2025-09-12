@@ -90,13 +90,12 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
   const generateResponse = useCallback(async (prompt: string, convId: string) => {
     setIsLoading(true);
     
-    // Use a placeholder for immediate UI feedback
     const assistantMessagePlaceholder: Message = {
       id: `thinking-${Date.now()}`,
       role: 'assistant',
       content: '',
       status: 'thinking',
-      createdAt: new Date() as any, // Temporary timestamp
+      createdAt: new Date() as any, 
     };
     setMessages((prev) => [...prev, assistantMessagePlaceholder]);
 
@@ -107,10 +106,8 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
         user: userProfile || undefined,
       });
 
-      // Save the actual response to Firestore
       const assistantMessageId = await saveMessage('assistant', response, convId);
 
-      // Auto-play audio if voice mode is enabled
       if (userProfile?.voiceModeEnabled && response && assistantMessageId) {
         const { audioDataUri } = await textToSpeech({ text: response, voice: userProfile.voice });
         handlePlayAudio(assistantMessageId, audioDataUri);
@@ -122,7 +119,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     } finally {
         setIsLoading(false);
     }
-  }, [user, userProfile]);
+  }, [userProfile]);
 
   const handleSendMessage = async (content: string) => {
     if (!user) return;
@@ -152,7 +149,6 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     const batch = writeBatch(db);
     let foundAssistantMessage = false;
 
-    // Find the last user message and delete the assistant message(s) after it
     for (const doc of querySnapshot.docs) {
       const message = doc.data();
       if (message.role === 'assistant') {
@@ -169,7 +165,6 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       await batch.commit();
       await generateResponse(lastUserMessageContent, conversationId);
     } else if (!foundAssistantMessage && messages.length > 0) {
-      // Handle case where only a user message exists
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'user') {
         await generateResponse(lastMessage.content, conversationId);
@@ -197,14 +192,6 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       scrollableContainerRef.current.scrollTop = scrollableContainerRef.current.scrollHeight;
     }
   }, [messages]);
-  
-  useEffect(() => {
-    // This effect is to handle the streaming-like display of assistant messages
-    // Since we are now saving the full message to Firestore at once,
-    // a different approach would be needed for word-by-word streaming.
-    // For simplicity, this is removed. The message will appear once it's saved.
-  }, [messages]);
-
 
   return (
     <div className="flex flex-1 flex-col h-full">
@@ -218,7 +205,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
             isNewChat={!conversationId}
         />
       </div>
-      <div className="border-t bg-background/50">
+      <div className="border-t bg-background/50 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl p-4 space-y-4">
           <MessageComposer onSendMessage={handleSendMessage} isLoading={isLoading} />
           <p className="text-center text-xs text-muted-foreground px-4">

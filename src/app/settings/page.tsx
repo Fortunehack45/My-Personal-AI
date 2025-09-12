@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Switch } from '@/components/ui/switch';
 
-const voices = ["algenib", "erinome", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
+const voices = ["gemini-female", "gemini-male", "algenib", "erinome", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -95,17 +95,17 @@ export default function SettingsPage() {
                   onValueChange={setTheme}
                   className="grid grid-cols-1 sm:grid-cols-3 gap-4"
                 >
-                  <Label htmlFor="light" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-ring">
+                  <Label htmlFor="light" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
                     <Sun className="h-6 w-6" />
                     <RadioGroupItem value="light" id="light" className="sr-only" />
                     <span>Light</span>
                   </Label>
-                  <Label htmlFor="dark" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-ring">
+                  <Label htmlFor="dark" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
                     <Moon className="h-6 w-6" />
                     <RadioGroupItem value="dark" id="dark" className="sr-only" />
                     <span>Dark</span>
                   </Label>
-                   <Label htmlFor="system" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-ring">
+                   <Label htmlFor="system" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
                     <Monitor className="h-6 w-6" />
                     <RadioGroupItem value="system" id="system" className="sr-only" />
                     <span>System</span>
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 />
               </div>
             <RadioGroup
-              value={userProfile?.voice || 'algenib'}
+              value={userProfile?.voice || 'gemini-female'}
               onValueChange={handleVoiceChange}
               className="grid grid-cols-2 sm:grid-cols-3 gap-4"
             >
@@ -147,11 +147,11 @@ export default function SettingsPage() {
                 <Label
                   key={voice}
                   htmlFor={voice}
-                  className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-ring"
+                  className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary"
                 >
                   <Volume2 className="h-6 w-6" />
                   <RadioGroupItem value={voice} id={voice} className="sr-only" />
-                  <span className="capitalize">{voice}</span>
+                  <span className="capitalize">{voice.replace('-', ' ')}</span>
                 </Label>
               ))}
             </RadioGroup>

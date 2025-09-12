@@ -4,7 +4,7 @@
  * @fileOverview A flow for converting text to speech.
  *
  * - textToSpeech - A function that converts text to an audio data URI.
- * - TextToSpeechInput - The input type for the textToSpeech function.
+ * - TextToSpeechInput - The input type for the textTotoSpeech function.
  * - TextToSpeechOutput - The return type for the textToSpeech function.
  */
 
@@ -69,7 +69,7 @@ const textToSpeechFlow = ai.defineFlow(
           responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: input.voice || 'algenib' },
+              prebuiltVoiceConfig: { voiceName: input.voice || 'gemini-female' },
             },
           },
         },
