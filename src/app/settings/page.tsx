@@ -97,7 +97,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              defaultValue={userProfile?.voice || 'algenib'}
+              defaultValue={userProfile?.voice || 'erinome'}
               onValueChange={handleVoiceChange}
               className="grid grid-cols-2 sm:grid-cols-3 gap-4"
             >
