@@ -4,8 +4,9 @@ import { ChatPanel } from '@/components/chat/chat-panel';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
-export default function ChatPage({ params }: { params: { conversationId: string[] | undefined } }) {
-  const conversationId = params.conversationId?.[0];
+export default function ChatPage({ params }: { params: { conversationId?: string[] } }) {
+  const { conversationId } = params;
+  const currentConversationId = conversationId?.[0];
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -22,5 +23,5 @@ export default function ChatPage({ params }: { params: { conversationId: string[
     return null;
   }
 
-  return <ChatPanel conversationId={conversationId} />;
+  return <ChatPanel conversationId={currentConversationId} />;
 }
