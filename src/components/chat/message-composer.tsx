@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, type KeyboardEvent, useEffect } from 'react';
@@ -152,25 +153,14 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                         </Button>
                     </div>
                 )}
-                 <div className="relative flex items-center">
-                    <Textarea
-                        ref={textareaRef}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={recordingState === 'transcribing' ? 'Transcribing...' : "Ask Progress anything..."}
-                        className="min-h-[40px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm pl-12 pr-12 py-2 text-base"
-                        rows={1}
-                        disabled={anyLoading}
-                    />
-
+                 <div className="flex items-center gap-2">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button 
                             type="button" 
                             size="icon" 
                             variant="ghost"
-                            className={cn("absolute left-1 h-10 w-10 shrink-0 rounded-full text-muted-foreground", recordingState === 'recording' && 'text-destructive animate-pulse')}
+                            className={cn("h-10 w-10 shrink-0 rounded-full text-muted-foreground", recordingState === 'recording' && 'text-destructive animate-pulse')}
                             onClick={handleMicClick}
                             disabled={anyLoading}
                             >
@@ -184,32 +174,41 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button type="button" size="icon" variant="ghost" className="absolute left-10 h-10 w-10 shrink-0 rounded-full text-muted-foreground" disabled={anyLoading} onClick={() => fileInputRef.current?.click()}>
+                            <Button type="button" size="icon" variant="ghost" className="h-10 w-10 shrink-0 rounded-full text-muted-foreground" disabled={anyLoading} onClick={() => fileInputRef.current?.click()}>
                                 <Paperclip className="h-5 w-5" />
                                 <span className="sr-only">Attach file</span>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Attach image</TooltipContent>
                     </Tooltip>
+                    <Textarea
+                        ref={textareaRef}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={recordingState === 'transcribing' ? 'Transcribing...' : "Ask Progress anything..."}
+                        className="min-h-[40px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-2 text-base"
+                        rows={1}
+                        disabled={anyLoading}
+                    />
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                type="submit"
+                                size="icon"
+                                variant="default"
+                                className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                                disabled={(!message.trim() && !attachment) || anyLoading}
+                                onClick={handleSendMessage}
+                            >
+                                <SendHorizonal className="h-5 w-5" />
+                                <span className="sr-only">Send</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Send message</TooltipContent>
+                    </Tooltip>
                  </div>
             </div>
-
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        type="submit"
-                        size="icon"
-                        variant="default"
-                        className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                        disabled={(!message.trim() && !attachment) || anyLoading}
-                        onClick={handleSendMessage}
-                    >
-                        <SendHorizonal className="h-5 w-5" />
-                        <span className="sr-only">Send</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Send message</TooltipContent>
-            </Tooltip>
         </div>
     </TooltipProvider>
   );
