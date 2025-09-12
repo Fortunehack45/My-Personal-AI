@@ -107,7 +107,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     try {
       if (mode === 'image') {
           const {imageDataUri} = await generateImage({prompt});
-          saveMessage('assistant', `Image generation complete for: "${prompt}"`, convId, imageDataUri);
+          await saveMessage('assistant', `Image generation complete for: "${prompt}"`, convId, imageDataUri);
 
       } else {
         const { response } = await generateResponseFlow({
@@ -128,13 +128,13 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
 
     } catch (error) {
         console.error("Error generating response:", error);
-        saveMessage('assistant', "Sorry, I couldn't generate a response. Please try again.", convId);
+        await saveMessage('assistant', "Sorry, I couldn't generate a response. Please try again.", convId);
     } finally {
         setIsLoading(false);
         // Remove the 'thinking' placeholder
         setMessages((prev) => prev.filter((msg) => msg.status !== 'thinking'));
     }
-  }, [userProfile, router]);
+  }, [userProfile]);
 
   const handleSendMessage = async (content: string, mode: AiMode, attachmentDataUri?: string) => {
     if (!user) return;
