@@ -93,6 +93,7 @@ export default function SignupPage() {
         location,
         voice: 'algenib',
         memory: '',
+        voiceModeEnabled: false,
       });
 
       toast({

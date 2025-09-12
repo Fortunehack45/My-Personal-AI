@@ -13,6 +13,7 @@ export type UserProfile = {
   age: number;
   voice: string;
   memory: string;
+  voiceModeEnabled: boolean;
   location?: {
     latitude: number;
     longitude: number;
@@ -44,10 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
       if (user) {
+        setUser(user);
         await fetchUserProfile(user);
       } else {
+        setUser(null);
         setUserProfile(null);
       }
       setLoading(false);
@@ -71,13 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (user) {
       await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
-      await fetchUserProfile(user); // Re-fetch to update state
+      setUserProfile(prevProfile => prevProfile ? { ...prevProfile, ...updates } : null);
     }
   };
 
   return (
     <AuthContext.Provider value={{ user, userProfile, loading, updateUserProfile }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

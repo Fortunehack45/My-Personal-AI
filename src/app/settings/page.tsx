@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Moon, Sun, Volume2 } from 'lucide-react';
+import { ArrowLeft, Monitor, Moon, Sun, Volume2, Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { Switch } from '@/components/ui/switch';
 
 const voices = ["algenib", "erinome", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
 
@@ -45,6 +46,24 @@ export default function SettingsPage() {
         title: 'Update Failed',
         description: description,
       });
+    }
+  };
+
+  const handleVoiceModeToggle = async (enabled: boolean) => {
+    if (!userProfile) return;
+    try {
+        await updateUserProfile({ voiceModeEnabled: enabled });
+        toast({
+            title: 'Voice Mode Updated',
+            description: `AI responses will now ${enabled ? 'be read aloud automatically' : 'not be read aloud automatically'}.`,
+        });
+    } catch (error) {
+        console.error('Failed to update voice mode', error);
+        toast({
+            variant: 'destructive',
+            title: 'Update Failed',
+            description: 'Could not update your voice mode preference.',
+        });
     }
   };
 
@@ -101,9 +120,25 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Voice Settings</CardTitle>
-            <CardDescription>Select the voice for the text-to-speech feature.</CardDescription>
+            <CardDescription>Select the voice for the text-to-speech feature and configure voice mode.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+             <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="voice-mode" className="text-base flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
+                    <span>Voice Mode</span>
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Have the AI read its responses out loud automatically.
+                  </p>
+                </div>
+                <Switch
+                  id="voice-mode"
+                  checked={userProfile?.voiceModeEnabled || false}
+                  onCheckedChange={handleVoiceModeToggle}
+                />
+              </div>
             <RadioGroup
               value={userProfile?.voice || 'algenib'}
               onValueChange={handleVoiceChange}

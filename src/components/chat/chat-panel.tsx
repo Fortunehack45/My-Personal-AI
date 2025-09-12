@@ -5,6 +5,7 @@ import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
 import { generateResponseBasedOnContext } from '@/ai/flows/generate-response-based-on-context';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { useAuth } from '@/hooks/use-auth';
 
 type ChatPanelProps = {
@@ -12,12 +13,26 @@ type ChatPanelProps = {
   conversationId: string | undefined;
 };
 
+type ActiveAudio = {
+  messageId: string;
+  audioDataUri: string;
+};
+
 export function ChatPanel({ messages: initialMessages, conversationId }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeAudio, setActiveAudio] = useState<ActiveAudio | null>(null);
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const { userProfile } = useAuth();
+  
+  const handlePlayAudio = (messageId: string, audioDataUri: string) => {
+    setActiveAudio({ messageId, audioDataUri });
+  };
+  
+  const handleAudioEnded = () => {
+    setActiveAudio(null);
+  };
 
   const generateResponse = useCallback(async (prompt: string, messagesToUpdate: Message[]) => {
     setIsLoading(true);
@@ -69,6 +84,12 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
           msg.id === assistantMessageId ? { ...msg, content: response } : msg
         )
       );
+
+      // Auto-play audio if voice mode is enabled
+      if (userProfile?.voiceModeEnabled && response) {
+        const { audioDataUri } = await textToSpeech({ text: response, voice: userProfile.voice });
+        setActiveAudio({ messageId: assistantMessageId, audioDataUri });
+      }
 
     } catch (error) {
         console.error("Error generating response:", error);
@@ -140,7 +161,13 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
   return (
     <div className="flex flex-1 flex-col h-full">
       <div className="flex-1 overflow-y-auto" ref={scrollableContainerRef}>
-        <MessageList messages={messages} onRegenerate={handleRegenerate} />
+        <MessageList 
+            messages={messages} 
+            onRegenerate={handleRegenerate}
+            activeAudio={activeAudio}
+            onPlayAudio={handlePlayAudio}
+            onAudioEnded={handleAudioEnded}
+        />
       </div>
       <div className="border-t bg-background/50">
         <div className="mx-auto max-w-3xl p-4 space-y-4">

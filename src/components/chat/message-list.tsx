@@ -14,23 +14,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { submitFeedback } from '@/ai/flows/submit-feedback';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
-type MessageListProps = {
-  messages: Message[];
-  onRegenerate: () => Promise<void>;
-};
-
-type AudioState = 'idle' | 'loading' | 'playing' | 'paused';
-type FeedbackState = 'idle' | 'loading';
 type ActiveAudio = {
   messageId: string;
   audioDataUri: string;
 };
+
+type MessageListProps = {
+  messages: Message[];
+  onRegenerate: () => Promise<void>;
+  activeAudio: ActiveAudio | null;
+  onPlayAudio: (messageId: string, audioDataUri: string) => void;
+  onAudioEnded: () => void;
+};
+
+type AudioState = 'idle' | 'loading' | 'playing' | 'paused';
+type FeedbackState = 'idle' | 'loading';
 
 const ThinkingIndicator = () => (
     <div className="flex items-center gap-2">
@@ -40,27 +44,61 @@ const ThinkingIndicator = () => (
     </div>
 );
 
-export function MessageList({ messages, onRegenerate }: MessageListProps) {
+export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, onAudioEnded }: MessageListProps) {
   const { toast } = useToast();
   const { userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>('idle');
-  const [activeAudio, setActiveAudio] = useState<ActiveAudio | null>(null);
+  const [currentAudioMessageId, setCurrentAudioMessageId] = useState<string | null>(null);
   const [feedbackState, setFeedbackState] = useState<Record<'like' | 'dislike', FeedbackState>>({ like: 'idle', dislike: 'idle' });
 
-  const getAudio = async (messageId: string, text: string) => {
-    if (activeAudio?.messageId === messageId) {
-      return activeAudio.audioDataUri;
+  // Effect to play audio when activeAudio prop changes
+  useEffect(() => {
+    if (activeAudio) {
+      if (audioRef.current && currentAudioMessageId === activeAudio.messageId) {
+        // If it's the same message, just play if paused
+        if (audioRef.current.paused) {
+          audioRef.current.play();
+        }
+      } else {
+        // If there's a different audio playing, stop it
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        
+        // Play new audio
+        const audio = new Audio(activeAudio.audioDataUri);
+        audioRef.current = audio;
+        setCurrentAudioMessageId(activeAudio.messageId);
+
+        audio.onplay = () => setAudioState('playing');
+        audio.onpause = () => setAudioState(audio.ended ? 'idle' : 'paused');
+        audio.onended = () => {
+          setAudioState('idle');
+          setCurrentAudioMessageId(null);
+          audioRef.current = null;
+          onAudioEnded();
+        };
+        audio.play();
+      }
+    } else {
+      // If activeAudio is null, stop any playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setAudioState('paused');
+      }
     }
+  }, [activeAudio, onAudioEnded]);
+
+
+  const getAudioAndPlay = async (messageId: string, text: string) => {
     setAudioState('loading');
+    setCurrentAudioMessageId(messageId);
     try {
       const { audioDataUri } = await textToSpeech({ text, voice: userProfile?.voice });
-      setActiveAudio({ messageId, audioDataUri });
-      setAudioState('idle');
-      return audioDataUri;
+      onPlayAudio(messageId, audioDataUri);
     } catch (error: any) {
       console.error("Error generating audio:", error);
-      setAudioState('idle');
       
       let description = 'Failed to generate audio. Please try again.';
       if (error.message && (error.message.includes('429') || error.message.includes('exceeded your current quota'))) {
@@ -74,50 +112,25 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
         title: 'Audio Error',
         description: description,
       });
-      return null;
+      setAudioState('idle');
+      setCurrentAudioMessageId(null);
     }
   };
 
-  const handlePlayAudio = async (messageId: string, text: string) => {
-    if (audioRef.current && audioState === 'playing' && activeAudio?.messageId === messageId) {
-      audioRef.current.pause();
-      setAudioState('paused');
-      return;
-    }
-
-    if (audioRef.current && audioState === 'paused' && activeAudio?.messageId === messageId) {
-      audioRef.current.play();
-      setAudioState('playing');
-      return;
-    }
-
-    const audioDataUri = await getAudio(messageId, text);
-    if (!audioDataUri) return;
-
-    const audio = new Audio(audioDataUri);
-    audioRef.current = audio;
-
-    audio.onplay = () => setAudioState('playing');
-    audio.onpause = () => {
-      if (audio.ended) {
-        setAudioState('idle');
-        audioRef.current = null;
-        setActiveAudio(null);
-      } else {
-        setAudioState('paused');
+  const handlePlayPauseClick = (messageId: string, text: string) => {
+    if (currentAudioMessageId === messageId && audioRef.current) {
+      if (audioState === 'playing') {
+        audioRef.current.pause();
+      } else if (audioState === 'paused') {
+        audioRef.current.play();
       }
-    };
-    audio.onended = () => {
-      setAudioState('idle');
-      audioRef.current = null;
-      setActiveAudio(null);
-    };
-    
-    audio.play();
+    } else {
+      getAudioAndPlay(messageId, text);
+    }
   };
 
   const handleDownloadAudio = async (messageId: string, text: string) => {
-    const audioDataUri = await getAudio(messageId, text);
+    const audioDataUri = activeAudio?.messageId === messageId ? activeAudio.audioDataUri : await getAudioAndPlay(messageId, text);
     if (!audioDataUri) return;
 
     const link = document.createElement('a');
@@ -169,7 +182,12 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
   return (
     <TooltipProvider>
       <div className="relative mx-auto max-w-3xl px-4 pt-4">
-        {messages.map((message, index) => (
+        {messages.map((message, index) => {
+            const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
+            const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
+            const isThisMessagePaused = audioState === 'paused' && currentAudioMessageId === message.id;
+
+          return (
           <motion.div
             key={message.id || index}
             initial={{ opacity: 0, y: 20 }}
@@ -239,16 +257,16 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayAudio(message.id, message.content)} disabled={audioState === 'loading' && activeAudio?.messageId !== message.id}>
-                        {audioState === 'playing' && activeAudio?.messageId === message.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayPauseClick(message.id, message.content)} disabled={isThisMessageLoading}>
+                        {isThisMessagePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         <span className="sr-only">Play audio</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>{audioState === 'playing' && activeAudio?.messageId === message.id ? 'Pause' : 'Play audio'}</TooltipContent>
+                    <TooltipContent>{isThisMessagePlaying ? 'Pause' : 'Play audio'}</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={audioState === 'loading' && activeAudio?.messageId !== message.id}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={isThisMessageLoading}>
                         <Download className="h-4 w-4" />
                         <span className="sr-only">Download audio</span>
                       </Button>
@@ -270,7 +288,7 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
               </Avatar>
             )}
           </motion.div>
-        ))}
+        )})}
       </div>
     </TooltipProvider>
   );
