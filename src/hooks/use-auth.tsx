@@ -77,11 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, userProfile, loading, updateUserProfile }}>
-      {loading ? (
-          <div className="flex min-h-screen items-center justify-center bg-background">
-            <p>Loading...</p>
-          </div>
-      ) : children}
+      {children}
     </AuthContext.Provider>
   );
 }
