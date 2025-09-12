@@ -9,7 +9,7 @@
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
-import serviceAccount from '../serviceAccountKey.json';
+import serviceAccount from '../../serviceAccountKey.json';
 
 // This is the shape of the data we expect from Firestore.
 export interface Feedback {
