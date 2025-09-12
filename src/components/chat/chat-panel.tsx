@@ -114,7 +114,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
           message: prompt,
           user: userProfile || undefined,
           attachmentDataUri: attachmentDataUri,
-          mode: mode === 'standard' ? undefined : mode,
+          mode: mode,
         });
   
         const assistantMessageId = await saveMessage('assistant', response, convId);
@@ -130,6 +130,8 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
         saveMessage('assistant', "Sorry, I couldn't generate a response. Please try again.", convId);
     } finally {
         setIsLoading(false);
+        // Remove the 'thinking' placeholder
+        setMessages((prev) => prev.filter((msg) => msg.status !== 'thinking'));
     }
   }, [userProfile]);
 
@@ -166,6 +168,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     const batch = writeBatch(db);
     let foundAssistantMessage = false;
 
+    // Delete the last assistant message(s) from the database
     for (const doc of querySnapshot.docs) {
       const message = doc.data();
       if (message.role === 'assistant') {
@@ -175,14 +178,16 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       if (message.role === 'user') {
         lastUserMessageContent = message.content;
         lastUserMessageAttachment = message.attachmentDataUri;
-        break;
+        break; // Stop after finding the last user message
       }
     }
     
     if (lastUserMessageContent !== null) {
-      await batch.commit();
+      await batch.commit(); // Apply the deletions
+      // Now regenerate response for the last user message
       await generateResponse(lastUserMessageContent, conversationId, regenerationMode, lastUserMessageAttachment);
     } else if (!foundAssistantMessage && messages.length > 0) {
+      // This handles the case where there's no assistant message in the DB, but there is a user message in the local state.
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'user') {
         await generateResponse(lastMessage.content, conversationId, regenerationMode, lastMessage.attachmentDataUri);
