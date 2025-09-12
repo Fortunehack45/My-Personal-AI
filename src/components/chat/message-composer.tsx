@@ -4,18 +4,15 @@
 import { useState, useRef, type KeyboardEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Paperclip, Mic, Square, X, Bot, Search, Sparkles } from 'lucide-react';
+import { SendHorizonal, Paperclip, Mic, Square, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { speechToText } from '@/ai/flows/speech-to-text';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-export type AiMode = 'standard' | 'search' | 'image' | 'thinkDeep';
 
 type MessageComposerProps = {
-  onSendMessage: (message: string, mode: AiMode, attachmentDataUri?: string) => void;
+  onSendMessage: (message: string, attachmentDataUri?: string) => void;
   isLoading?: boolean;
 };
 
@@ -25,7 +22,6 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
   const [message, setMessage] = useState('');
   const [attachment, setAttachment] = useState<{ type: 'image'; dataUri: string; name: string } | null>(null);
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
-  const [aiMode, setAiMode] = useState<AiMode>('standard');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -34,7 +30,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
 
   const handleSendMessage = () => {
     if (message.trim() || attachment) {
-      onSendMessage(message.trim(), aiMode, attachment?.dataUri);
+      onSendMessage(message.trim(), attachment?.dataUri);
       setMessage('');
       setAttachment(null);
     }
@@ -157,52 +153,13 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                 </div>
             )}
             <div className="relative flex items-end gap-2">
-              <Select value={aiMode} onValueChange={(value: AiMode) => setAiMode(value)}>
-                  <Tooltip>
-                      <TooltipTrigger asChild>
-                          <SelectTrigger className="w-auto h-10 shrink-0 rounded-full bg-background border shadow-sm px-3 text-base">
-                              <SelectValue placeholder="Select mode" />
-                          </SelectTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>Select AI Mode</TooltipContent>
-                  </Tooltip>
-                  <SelectContent>
-                      <SelectItem value="standard">
-                          <div className="flex items-center gap-2">
-                              <Bot className="h-4 w-4" />
-                              <span>Standard</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="search">
-                          <div className="flex items-center gap-2">
-                              <Search className="h-4 w-4" />
-                              <span>Search the Internet</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="image">
-                          <div className="flex items-center gap-2">
-                              <Paperclip className="h-4 w-4" />
-                              <span>Image Generation</span>
-                          </div>
-                      </SelectItem>
-                       <SelectItem value="thinkDeep">
-                          <div className="flex items-center gap-2">
-                              <Sparkles className="h-4 w-4" />
-                              <span>Think Deep</span>
-                          </div>
-                      </SelectItem>
-                  </SelectContent>
-              </Select>
-            
               <Textarea
                   ref={textareaRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={
-                    aiMode === 'image' 
-                      ? "Describe the image you want to generate..."
-                      : recordingState === 'transcribing' 
+                    recordingState === 'transcribing' 
                       ? 'Transcribing...' 
                       : "Ask Progress anything..."
                   }
@@ -246,7 +203,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                               size="icon"
                               variant="default"
                               className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                              disabled={!message.trim() || anyLoading}
+                              disabled={(!message.trim() && !attachment) || anyLoading}
                               onClick={handleSendMessage}
                           >
                               <SendHorizonal className="h-5 w-5" />

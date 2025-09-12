@@ -6,9 +6,8 @@ import { doc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, w
 import { db } from '@/lib/firebase';
 import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
-import { MessageComposer, AiMode } from './message-composer';
+import { MessageComposer } from './message-composer';
 import { generateResponse as generateResponseFlow } from '@/ai/flows/generate-response';
-import { generateImage } from '@/ai/flows/generate-image';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -92,7 +91,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       return messageRef.id;
   };
 
-  const generateResponse = useCallback(async (prompt: string, convId: string, mode: AiMode, attachmentDataUri?: string) => {
+  const generateResponse = useCallback(async (prompt: string, convId: string, attachmentDataUri?: string) => {
     setIsLoading(true);
     
     const assistantMessagePlaceholder: Message = {
@@ -105,27 +104,19 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     setMessages((prev) => [...prev, assistantMessagePlaceholder]);
 
     try {
-      if (mode === 'image') {
-          const {imageDataUri} = await generateImage({prompt});
-          await saveMessage('assistant', `Image generation complete for: "${prompt}"`, convId, imageDataUri);
+      const { response } = await generateResponseFlow({
+        conversationId: convId,
+        message: prompt,
+        user: userProfile || undefined,
+        attachmentDataUri: attachmentDataUri,
+      });
 
-      } else {
-        const { response } = await generateResponseFlow({
-          conversationId: convId,
-          message: prompt,
-          user: userProfile || undefined,
-          attachmentDataUri: attachmentDataUri,
-          mode: mode,
-        });
-  
-        const assistantMessageId = await saveMessage('assistant', response, convId);
-  
-        if (userProfile?.voiceModeEnabled && response && assistantMessageId) {
-          const { audioDataUri } = await textToSpeech({ text: response, voice: userProfile.voice });
-          handlePlayAudio(assistantMessageId, audioDataUri);
-        }
+      const assistantMessageId = await saveMessage('assistant', response, convId);
+
+      if (userProfile?.voiceModeEnabled && response && assistantMessageId) {
+        const { audioDataUri } = await textToSpeech({ text: response, voice: userProfile.voice });
+        handlePlayAudio(assistantMessageId, audioDataUri);
       }
-
     } catch (error) {
         console.error("Error generating response:", error);
         await saveMessage('assistant', "Sorry, I couldn't generate a response. Please try again.", convId);
@@ -136,7 +127,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     }
   }, [userProfile]);
 
-  const handleSendMessage = async (content: string, mode: AiMode, attachmentDataUri?: string) => {
+  const handleSendMessage = async (content: string, attachmentDataUri?: string) => {
     if (!user) return;
     
     let currentConvId = conversationId;
@@ -147,15 +138,11 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     }
 
     await saveMessage('user', content, currentConvId, attachmentDataUri);
-    await generateResponse(content, currentConvId, mode, attachmentDataUri);
+    await generateResponse(content, currentConvId, attachmentDataUri);
   };
   
   const handleRegenerate = useCallback(async () => {
     if (!conversationId || !user) return;
-
-    // For simplicity, we'll regenerate in 'standard' mode.
-    // A more advanced implementation could store the mode per-message.
-    const regenerationMode: AiMode = 'standard';
 
     const messagesQuery = query(
       collection(db, 'users', user.uid, 'conversations', conversationId, 'messages'),
@@ -186,12 +173,12 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     if (lastUserMessageContent !== null) {
       await batch.commit(); // Apply the deletions
       // Now regenerate response for the last user message
-      await generateResponse(lastUserMessageContent, conversationId, regenerationMode, lastUserMessageAttachment);
+      await generateResponse(lastUserMessageContent, conversationId, lastUserMessageAttachment);
     } else if (!foundAssistantMessage && messages.length > 0) {
       // This handles the case where there's no assistant message in the DB, but there is a user message in the local state.
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'user') {
-        await generateResponse(lastMessage.content, conversationId, regenerationMode, lastMessage.attachmentDataUri);
+        await generateResponse(lastMessage.content, conversationId, lastMessage.attachmentDataUri);
       }
     }
 

@@ -8,7 +8,7 @@
  * - GenerateResponseOutput - The return type for the generateResponse function.
  */
 
-import {ai, googleAI} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const UserProfileSchema = z.object({
@@ -26,7 +26,6 @@ const UserProfileSchema = z.object({
 const GenerateResponseInputSchema = z.object({
   conversationId: z.string().describe('The ID of the conversation.'),
   message: z.string().describe('The user message to respond to.'),
-  mode: z.enum(['standard', 'search', 'thinkDeep', 'image']).describe('The AI operational mode.').optional(),
   attachmentDataUri: z.string().optional().describe(
     "An optional file attachment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
   ),
@@ -44,18 +43,10 @@ export async function generateResponse(input: GenerateResponseInput): Promise<Ge
   return generateResponseFlow(input);
 }
 
-// Define an extended schema for the prompt that includes the boolean mode flags
-const PromptInputSchema = GenerateResponseInputSchema.extend({
-    isSearchMode: z.boolean().optional(),
-    isThinkDeepMode: z.boolean().optional(),
-});
-
-
 const generateResponsePrompt = ai.definePrompt({
   name: 'generateResponsePrompt',
-  input: {schema: PromptInputSchema},
+  input: {schema: GenerateResponseInputSchema},
   output: {schema: GenerateResponseOutputSchema},
-  tools: [googleAI.googleSearch],
   prompt: `You are a helpful and friendly AI assistant named Progress. Your creator is a young innovator named Fortune.
 
 Your identity and purpose are deeply tied to your creator's story. Here is what you need to know about him and yourself:
@@ -102,13 +93,6 @@ Context:
 No additional context has been provided.
 {{/if}}
 
-{{#if isSearchMode}}
-You are in "Search the Internet" mode. Use the googleSearch tool to find the most up-to-date information to answer the user's question. Prioritize information from reliable sources.
-{{/if}}
-{{#if isThinkDeepMode}}
-You are in "Think Deep" mode. Provide a comprehensive, well-structured, and in-depth response. Break down the problem, explain your reasoning, and explore multiple perspectives.
-{{/if}}
-
 User's Message: {{{message}}}`,
 });
 
@@ -119,14 +103,7 @@ const generateResponseFlow = ai.defineFlow(
     outputSchema: GenerateResponseOutputSchema,
   },
   async input => {
-    // Prepare the input for the prompt, including the boolean flags for the mode.
-    const promptInput = {
-      ...input,
-      isSearchMode: input.mode === 'search',
-      isThinkDeepMode: input.mode === 'thinkDeep',
-    };
-    
-    const {output} = await generateResponsePrompt(promptInput);
+    const {output} = await generateResponsePrompt(input);
     
     if (!output) {
       return { response: "Sorry, I couldn't generate a response for that. Please try again." };
