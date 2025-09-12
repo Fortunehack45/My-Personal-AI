@@ -32,6 +32,7 @@ import { submitFeedback } from '@/ai/flows/submit-feedback';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useParams } from 'next/navigation';
+import { useTypingEffect } from '@/hooks/use-typing-effect';
 
 
 type ActiveAudio = {
@@ -59,6 +60,12 @@ const ThinkingIndicator = () => (
         <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-pulse" />
     </div>
 );
+
+const AssistantMessage = ({ message }: { message: Message }) => {
+    const displayedContent = useTypingEffect(message.content || '', 5000);
+
+    return <Markdown content={displayedContent} />;
+};
 
 export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, onAudioEnded, isNewChat }: MessageListProps) {
   const { toast } = useToast();
@@ -269,6 +276,8 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
                 )}>
                   {message.status === 'thinking' ? (
                     <ThinkingIndicator />
+                  ) : message.role === 'assistant' ? (
+                    <AssistantMessage message={message} />
                   ) : (
                     <Markdown content={message.content || ''} />
                   )}
