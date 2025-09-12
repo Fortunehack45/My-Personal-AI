@@ -32,7 +32,7 @@ export type GenerateResponseBasedOnContextInput = z.infer<typeof GenerateRespons
 const GenerateResponseBasedOnContextOutputSchema = z.object({
   response: z.string().describe('The AI generated response.'),
 });
-export type GenerateResponseBasedOn-on-context-output = z.infer<typeof GenerateResponseBasedOnContextOutputSchema>;
+export type GenerateResponseBasedOnContextOutput = z.infer<typeof GenerateResponseBasedOnContextOutputSchema>;
 
 export async function generateResponseBasedOnContext(input: GenerateResponseBasedOnContextInput): Promise<GenerateResponseBasedOnContextOutput> {
   return generateResponseBasedOnContextFlow(input);
@@ -46,7 +46,7 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
 
 Your goal is to provide accurate and helpful answers to the user's questions.
 
-If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a greeting or a simple conversational turn, respond naturally and conversationally.
+If context is provided, use it to inform your response, but also rely on your general knowledge. If the user's message is a simple conversational turn, respond naturally and conversationally.
 
 {{#if user}}
 You are speaking to {{user.firstName}}.
