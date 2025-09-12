@@ -58,13 +58,19 @@ export function MessageList({ messages, onRegenerate }: MessageListProps) {
       setActiveAudio({ messageId, audioDataUri });
       setAudioState('idle');
       return audioDataUri;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating audio:", error);
       setAudioState('idle');
+      
+      let description = 'Failed to generate audio. Please try again.';
+      if (error.message && error.message.includes('503 Service Unavailable')) {
+        description = 'The audio service is currently busy. Please try again in a moment.';
+      }
+
       toast({
         variant: 'destructive',
         title: 'Audio Error',
-        description: 'Failed to generate audio. Please try again.',
+        description: description,
       });
       return null;
     }
