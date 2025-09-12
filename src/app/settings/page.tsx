@@ -19,8 +19,12 @@ export default function SettingsPage() {
   const { toast } = useToast();
 
   const handleVoiceChange = async (newVoice: string) => {
+    if (!userProfile) return;
     try {
+      // Optimistically update UI
+      const oldVoice = userProfile.voice;
       await updateUserProfile({ voice: newVoice });
+
       toast({
         title: 'Voice Updated',
         description: `The AI voice has been changed to ${newVoice}.`,
@@ -30,12 +34,16 @@ export default function SettingsPage() {
       const audio = new Audio(audioDataUri);
       audio.play();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update voice', error);
+      let description = 'Could not update your voice preference.';
+      if (error.message && error.message.includes('429')) {
+        description = 'You have exceeded the API quota for audio generation. Please check your plan and billing details.';
+      }
       toast({
         variant: 'destructive',
         title: 'Update Failed',
-        description: 'Could not update your voice preference.',
+        description: description,
       });
     }
   };
@@ -97,7 +105,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              defaultValue={userProfile?.voice || 'erinome'}
+              value={userProfile?.voice || 'algenib'}
               onValueChange={handleVoiceChange}
               className="grid grid-cols-2 sm:grid-cols-3 gap-4"
             >
