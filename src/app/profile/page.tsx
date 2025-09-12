@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Mail, Calendar, MapPin, ArrowLeft } from 'lucide-react';
+import { User, Mail, Gift, MapPin, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function ProfilePage() {
@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const userInitial = userProfile?.firstName ? userProfile.firstName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U';
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 bg-background min-h-screen">
         <div className="max-w-2xl mx-auto mb-4">
              <Button asChild variant="outline">
                 <Link href="/chat">
@@ -57,7 +57,7 @@ export default function ProfilePage() {
                 </div>
             </div>
             <div className="flex items-center gap-4">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <Gift className="h-5 w-5 text-muted-foreground" />
                 <div className='text-sm'>
                     <p className="font-medium">Age</p>
                     <p className="text-muted-foreground">{userProfile.age}</p>

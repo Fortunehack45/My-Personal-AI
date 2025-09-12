@@ -82,7 +82,7 @@ export default function SignupPage() {
       const user = userCredential.user;
 
       await updateProfile(user, {
-        displayName: firstName,
+        displayName: `${firstName} ${lastName}`,
       });
 
       await setDoc(doc(db, 'users', user.uid), {

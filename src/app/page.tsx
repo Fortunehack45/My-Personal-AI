@@ -18,9 +18,5 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <p>Loading...</p>
-    </div>
-  );
+  return null;
 }

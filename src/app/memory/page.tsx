@@ -50,7 +50,7 @@ export default function MemoryPage() {
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 bg-background min-h-screen">
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
             <div>
@@ -72,7 +72,7 @@ export default function MemoryPage() {
               <span>Personal Memory</span>
             </CardTitle>
             <CardDescription>
-                You can add notes, preferences, or any other information here that you want the AI to remember for future conversations.
+                You can add notes, preferences, or any other information here that you want the AI to remember for future conversations. This is a simple text-based memory.
             </CardDescription>
           </CardHeader>
           <CardContent>

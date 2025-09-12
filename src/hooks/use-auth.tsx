@@ -65,8 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!user && !isAuthPage) {
         router.replace('/login');
-    } else if (user && isAuthPage) {
-        router.replace('/chat');
     }
   }, [user, loading, pathname, router]);
 
@@ -76,9 +74,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const value = { user, userProfile, loading, updateUserProfile };
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, updateUserProfile }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {loading ? (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <p>Loading...</p>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 }
