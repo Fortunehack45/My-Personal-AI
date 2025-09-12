@@ -13,7 +13,7 @@ import { UserNav } from '@/components/chat/user-nav';
 import { ConversationList } from '@/components/chat/conversation-list';
 import { ContextPanel } from '@/components/chat/context-panel';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, MessageSquare, Settings2, PanelLeft } from 'lucide-react';
+import { Search, Plus, MessageSquare, Settings2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
@@ -53,13 +53,10 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           </SidebarFooter>
         </Sidebar>
 
-        <div className="flex flex-col md:pl-[var(--sidebar-width-icon)] lg:pl-[calc(var(--sidebar-width)_+_1rem)]">
+        <div className="flex flex-col md:pl-[var(--sidebar-width-icon)] lg:pl-[calc(var(--sidebar-width)_+_1rem)] transition-[margin-left] duration-200 ease-linear group-data-[state=expanded]/sidebar-wrapper:lg:pl-[calc(var(--sidebar-width)_+_1rem)] group-data-[state=collapsed]/sidebar-wrapper:lg:pl-[calc(var(--sidebar-width-icon)_+_1rem)]">
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-20 lg:px-6">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className='md:hidden'>
-                <PanelLeft className="h-5 w-5" />
-                <span className="sr-only">Toggle sidebar</span>
-              </Button>
+              <SidebarTrigger className='md:hidden' />
               <h1 className="font-headline font-semibold text-xl lg:text-2xl truncate">New Conversation</h1>
             </div>
 
