@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -36,26 +36,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const fetchUserProfile = async (user: User) => {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) {
-      setUserProfile(userDoc.data() as UserProfile);
-    }
-  };
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        await fetchUserProfile(user);
+        const userDocRef = doc(db, 'users', user.uid);
+        const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
+          if (doc.exists()) {
+            setUserProfile(doc.data() as UserProfile);
+          }
+          setLoading(false);
+        });
+        return () => unsubscribeProfile();
       } else {
         setUser(null);
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
   
   useEffect(() => {
@@ -73,13 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (user) {
       await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
-      setUserProfile(prevProfile => prevProfile ? { ...prevProfile, ...updates } : null);
     }
   };
 
   return (
     <AuthContext.Provider value={{ user, userProfile, loading, updateUserProfile }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

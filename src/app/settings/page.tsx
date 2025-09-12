@@ -23,7 +23,6 @@ export default function SettingsPage() {
     if (!userProfile) return;
     try {
       // Optimistically update UI
-      const oldVoice = userProfile.voice;
       await updateUserProfile({ voice: newVoice });
 
       toast({

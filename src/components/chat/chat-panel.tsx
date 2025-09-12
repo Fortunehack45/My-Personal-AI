@@ -88,7 +88,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       // Auto-play audio if voice mode is enabled
       if (userProfile?.voiceModeEnabled && response) {
         const { audioDataUri } = await textToSpeech({ text: response, voice: userProfile.voice });
-        setActiveAudio({ messageId: assistantMessageId, audioDataUri });
+        handlePlayAudio(assistantMessageId, audioDataUri);
       }
 
     } catch (error) {
