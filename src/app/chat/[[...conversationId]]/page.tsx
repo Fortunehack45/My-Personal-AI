@@ -1,9 +1,26 @@
+'use client';
+
 import { ChatPanel } from '@/components/chat/chat-panel';
-import { messages } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function ChatPage({ params }: { params: { conversationId: string[] | undefined } }) {
   const conversationId = params.conversationId?.[0];
-  const chatMessages = conversationId ? messages[conversationId] || [] : [];
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  return <ChatPanel messages={chatMessages} conversationId={conversationId} />;
+  if (loading) {
+    return (
+        <div className="flex flex-1 flex-col h-full items-center justify-center">
+            <p>Loading chat...</p>
+        </div>
+    );
+  }
+
+  if (!user) {
+    router.replace('/login');
+    return null;
+  }
+
+  return <ChatPanel conversationId={conversationId} />;
 }

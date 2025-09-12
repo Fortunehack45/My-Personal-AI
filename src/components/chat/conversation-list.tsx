@@ -2,13 +2,42 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { conversations } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/hooks/use-auth';
+import type { Conversation } from '@/lib/data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 
 export function ConversationList() {
   const params = useParams();
+  const { user } = useAuth();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const currentConversationId = Array.isArray(params.conversationId) ? params.conversationId[0] : params.conversationId;
+
+  useEffect(() => {
+    if (user) {
+      const q = query(
+        collection(db, 'users', user.uid, 'conversations'),
+        orderBy('createdAt', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const convos: Conversation[] = [];
+        querySnapshot.forEach((doc) => {
+          convos.push({ id: doc.id, ...doc.data() } as Conversation);
+        });
+        setConversations(convos);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  if (!user) {
+    return null; // Or a loading/placeholder state
+  }
 
   return (
       <ScrollArea className="flex-1">

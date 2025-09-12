@@ -31,6 +31,7 @@ type MessageListProps = {
   activeAudio: ActiveAudio | null;
   onPlayAudio: (messageId: string, audioDataUri: string) => void;
   onAudioEnded: () => void;
+  isNewChat: boolean;
 };
 
 type AudioState = 'idle' | 'loading' | 'playing' | 'paused';
@@ -44,7 +45,7 @@ const ThinkingIndicator = () => (
     </div>
 );
 
-export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, onAudioEnded }: MessageListProps) {
+export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, onAudioEnded, isNewChat }: MessageListProps) {
   const { toast } = useToast();
   const { userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -88,7 +89,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
         setAudioState('paused');
       }
     }
-  }, [activeAudio, onAudioEnded]);
+  }, [activeAudio, onAudioEnded, currentAudioMessageId]);
 
 
   const getAudioAndPlay = async (messageId: string, text: string) => {
@@ -97,6 +98,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
     try {
       const { audioDataUri } = await textToSpeech({ text, voice: userProfile?.voice });
       onPlayAudio(messageId, audioDataUri);
+      return audioDataUri;
     } catch (error: any) {
       console.error("Error generating audio:", error);
       
@@ -114,6 +116,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
       });
       setAudioState('idle');
       setCurrentAudioMessageId(null);
+      return null;
     }
   };
 
@@ -130,7 +133,12 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   };
 
   const handleDownloadAudio = async (messageId: string, text: string) => {
-    const audioDataUri = activeAudio?.messageId === messageId ? activeAudio.audioDataUri : await getAudioAndPlay(messageId, text);
+    let audioDataUri = activeAudio?.messageId === messageId ? activeAudio.audioDataUri : null;
+    
+    if (!audioDataUri) {
+        audioDataUri = await getAudioAndPlay(messageId, text);
+    }
+
     if (!audioDataUri) return;
 
     const link = document.createElement('a');
@@ -163,7 +171,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
     }
   };
 
-  if (!messages.length) {
+  if (isNewChat && messages.length === 0) {
     return (
         <div className="flex h-full flex-col items-center justify-center gap-6 p-4 text-center">
             <div className='p-5 bg-primary/20 rounded-full border-4 border-primary/30 shadow-lg'>
@@ -185,8 +193,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
         {messages.map((message, index) => {
             const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
             const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
-            const isThisMessagePaused = audioState === 'paused' && currentAudioMessageId === message.id;
-
+            
           return (
           <motion.div
             key={message.id || index}
