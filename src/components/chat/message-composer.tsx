@@ -3,18 +3,25 @@
 import { useState, useRef, type KeyboardEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Paperclip, Globe, Zap, Library, GraduationCap, Image as ImageIcon } from 'lucide-react';
+import { SendHorizonal, Paperclip, Globe, Zap, Library, GraduationCap, Image as ImageIcon, Mic, MicOff, Square } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { speechToText } from '@/ai/flows/speech-to-text';
+import { cn } from '@/lib/utils';
 
 type MessageComposerProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
 };
 
+type RecordingState = 'idle' | 'recording' | 'transcribing';
+
 export function MessageComposer({ onSendMessage, isLoading }: MessageComposerProps) {
   const [message, setMessage] = useState('');
   const [isFeatureLoading, setIsFeatureLoading] = useState(false);
+  const [recordingState, setRecordingState] = useState<RecordingState>('idle');
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
@@ -25,7 +32,6 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
       description: `The "${featureName}" feature is not yet implemented. This is a placeholder.`,
     });
 
-    // Simulate an async operation
     setTimeout(() => {
       setIsFeatureLoading(false);
     }, 2000);
@@ -45,6 +51,67 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        setRecordingState('transcribing');
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result as string;
+          try {
+            const { transcription } = await speechToText({ audioDataUri: base64Audio });
+            setMessage(prev => prev ? `${prev} ${transcription}` : transcription);
+          } catch (error) {
+            console.error('Error transcribing audio:', error);
+            toast({
+              variant: 'destructive',
+              title: 'Transcription Failed',
+              description: 'Could not transcribe the audio. Please try again.',
+            });
+          } finally {
+            setRecordingState('idle');
+          }
+        };
+      };
+
+      mediaRecorder.start();
+      setRecordingState('recording');
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Microphone Error',
+        description: 'Could not access the microphone. Please check your browser permissions.',
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      // onstop event will handle the rest
+    }
+  };
+
+  const handleMicClick = () => {
+    if (recordingState === 'recording') {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   useEffect(() => {
     if (textareaRef.current) {
         textareaRef.current.style.height = '0px';
@@ -53,7 +120,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
     }
   }, [message, textareaRef]);
 
-  const anyLoading = isLoading || isFeatureLoading;
+  const anyLoading = isLoading || isFeatureLoading || recordingState === 'transcribing';
 
   return (
     <TooltipProvider>
@@ -68,6 +135,24 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                     </TooltipTrigger>
                     <TooltipContent>Attach file</TooltipContent>
                 </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          size="icon" 
+                          variant={recordingState === 'recording' ? 'destructive' : 'outline'} 
+                          className={cn("shrink-0 rounded-full h-12 w-12", recordingState === 'recording' && 'animate-pulse')}
+                          onClick={handleMicClick}
+                          disabled={anyLoading}
+                        >
+                            {recordingState === 'recording' ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                            <span className="sr-only">{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{recordingState === 'recording' ? 'Stop recording' : 'Start recording'}</TooltipContent>
+                </Tooltip>
+
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -80,7 +165,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Ask Progress anything..."
+                      placeholder={recordingState === 'transcribing' ? 'Transcribing...' : "Ask Progress anything..."}
                       className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-4 py-3.5 pr-14 text-base"
                       rows={1}
                       disabled={anyLoading}
