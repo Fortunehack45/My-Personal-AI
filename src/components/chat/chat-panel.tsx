@@ -35,7 +35,7 @@ export function ChatPanel({ messages: initialMessages, conversationId }: ChatPan
       const { response } = await generateResponseBasedOnContext({
         conversationId: conversationId || 'new',
         message: prompt,
-        user: userProfile || undefined,
+        user: userProfile ? userProfile : undefined,
       });
 
       const words = response.split(/(\s+)/);
