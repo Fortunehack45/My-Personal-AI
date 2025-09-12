@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {googleSearch} from '@genkit-ai/googleai';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const UserProfileSchema = z.object({
@@ -48,7 +48,7 @@ const generateResponseBasedOnContextPrompt = ai.definePrompt({
   name: 'generateResponseBasedOnContextPrompt',
   input: {schema: GenerateResponseBasedOnContextInputSchema},
   output: {schema: GenerateResponseBasedOnContextOutputSchema},
-  tools: [googleSearch],
+  tools: [googleAI.googleSearch],
   prompt: `You are a helpful and friendly AI assistant named Progress. Your creator is a young innovator named Fortune.
 
 Your identity and purpose are deeply tied to your creator's story. Here is what you need to know about him and yourself:
