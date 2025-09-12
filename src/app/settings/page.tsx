@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 
-const voices = ["Algenib", "Antares", "Arcturus", "Canopus", "Capella", "Hadrian"];
+const voices = ["algenib", "erinome", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -97,7 +97,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              defaultValue={userProfile?.voice || 'Algenib'}
+              defaultValue={userProfile?.voice || 'algenib'}
               onValueChange={handleVoiceChange}
               className="grid grid-cols-2 sm:grid-cols-3 gap-4"
             >
@@ -109,7 +109,7 @@ export default function SettingsPage() {
                 >
                   <Volume2 className="h-6 w-6" />
                   <RadioGroupItem value={voice} id={voice} className="sr-only" />
-                  <span>{voice}</span>
+                  <span className="capitalize">{voice}</span>
                 </Label>
               ))}
             </RadioGroup>
