@@ -12,6 +12,7 @@ export type Message = {
   role: 'user' | 'assistant';
   content: string;
   createdAt: Timestamp;
+  attachmentDataUri?: string;
   status?: 'thinking';
 };
 

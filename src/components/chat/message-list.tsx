@@ -33,7 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useParams } from 'next/navigation';
 import { useTypingEffect } from '@/hooks/use-typing-effect';
-
+import Image from 'next/image';
 
 type ActiveAudio = {
   messageId: string;
@@ -266,10 +266,15 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
                   {message.role === 'user' ? 'You' : 'Progress'}
                 </p>
                 <div className={cn(
-                  "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-xl shadow-sm",
+                  "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-xl shadow-sm space-y-4",
                   "dark:prose-invert",
                   message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
                 )}>
+                  {message.attachmentDataUri && (
+                    <div className="relative aspect-video rounded-md overflow-hidden border">
+                      <Image src={message.attachmentDataUri} alt="User attachment" layout="fill" objectFit="contain" />
+                    </div>
+                  )}
                   {message.status === 'thinking' ? (
                     <ThinkingIndicator />
                   ) : message.role === 'assistant' ? (

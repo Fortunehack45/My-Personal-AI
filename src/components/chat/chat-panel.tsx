@@ -68,7 +68,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     if (!user) return null;
 
     const newConversationRef = await addDoc(collection(db, 'users', user.uid, 'conversations'), {
-      title: initialMessageContent.substring(0, 50),
+      title: initialMessageContent.substring(0, 50) || 'New Conversation',
       createdAt: serverTimestamp(),
       userId: user.uid,
     });
@@ -77,17 +77,22 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     return newConversationRef.id;
   };
 
-  const saveMessage = async (role: 'user' | 'assistant', content: string, convId: string) => {
+  const saveMessage = async (role: 'user' | 'assistant', content: string, convId: string, attachmentDataUri?: string) => {
       if (!user) return null;
-      const messageRef = await addDoc(collection(db, 'users', user.uid, 'conversations', convId, 'messages'), {
+      const messageData: { role: 'user' | 'assistant', content: string, createdAt: any, attachmentDataUri?: string } = {
         role,
         content,
         createdAt: serverTimestamp(),
-      });
+      };
+      if (attachmentDataUri) {
+        messageData.attachmentDataUri = attachmentDataUri;
+      }
+
+      const messageRef = await addDoc(collection(db, 'users', user.uid, 'conversations', convId, 'messages'), messageData);
       return messageRef.id;
   };
 
-  const generateResponse = useCallback(async (prompt: string, convId: string) => {
+  const generateResponse = useCallback(async (prompt: string, convId: string, attachmentDataUri?: string) => {
     setIsLoading(true);
     
     const assistantMessagePlaceholder: Message = {
@@ -104,6 +109,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
         conversationId: convId,
         message: prompt,
         user: userProfile || undefined,
+        attachmentDataUri: attachmentDataUri,
       });
 
       const assistantMessageId = await saveMessage('assistant', response, convId);
@@ -121,7 +127,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     }
   }, [userProfile]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, attachmentDataUri?: string) => {
     if (!user) return;
     
     let currentConvId = conversationId;
@@ -131,8 +137,8 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       if (!currentConvId) return;
     }
 
-    await saveMessage('user', content, currentConvId);
-    await generateResponse(content, currentConvId);
+    await saveMessage('user', content, currentConvId, attachmentDataUri);
+    await generateResponse(content, currentConvId, attachmentDataUri);
   };
   
   const handleRegenerate = useCallback(async () => {
@@ -146,6 +152,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     const querySnapshot = await getDocs(messagesQuery);
     
     let lastUserMessageContent: string | null = null;
+    let lastUserMessageAttachment: string | undefined = undefined;
     const batch = writeBatch(db);
     let foundAssistantMessage = false;
 
@@ -157,17 +164,18 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
       }
       if (message.role === 'user') {
         lastUserMessageContent = message.content;
+        lastUserMessageAttachment = message.attachmentDataUri;
         break;
       }
     }
     
-    if (lastUserMessageContent) {
+    if (lastUserMessageContent !== null) {
       await batch.commit();
-      await generateResponse(lastUserMessageContent, conversationId);
+      await generateResponse(lastUserMessageContent, conversationId, lastUserMessageAttachment);
     } else if (!foundAssistantMessage && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'user') {
-        await generateResponse(lastMessage.content, conversationId);
+        await generateResponse(lastMessage.content, conversationId, lastMessage.attachmentDataUri);
       }
     }
 

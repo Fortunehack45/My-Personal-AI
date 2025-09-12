@@ -25,6 +25,9 @@ const UserProfileSchema = z.object({
 const GenerateResponseBasedOnContextInputSchema = z.object({
   conversationId: z.string().describe('The ID of the conversation.'),
   message: z.string().describe('The user message to respond to.'),
+  attachmentDataUri: z.string().optional().describe(
+    "An optional file attachment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+  ),
   retrievedContext: z.string().optional().describe('The context retrieved from vector embeddings.'),
   user: UserProfileSchema.optional().describe("The user's profile information, if available."),
 });
@@ -65,6 +68,11 @@ The user has provided the following information to remember. Use it to inform yo
 {{user.memory}}
 ---
 {{/if}}
+{{/if}}
+
+{{#if attachmentDataUri}}
+The user has provided the following attachment. Use it as the primary context for your response.
+Attachment: {{media url=attachmentDataUri}}
 {{/if}}
 
 Context:
