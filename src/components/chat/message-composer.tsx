@@ -118,7 +118,7 @@ export function MessageComposer({ onSendMessage, isLoading }: MessageComposerPro
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={recordingState === 'transcribing' ? 'Transcribing...' : "Ask Progress anything..."}
-                    className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm px-14 py-3.5 pr-20 text-base"
+                    className="min-h-[52px] max-h-48 w-full rounded-2xl resize-none bg-background border shadow-sm pl-14 pr-20 py-3.5 text-base"
                     rows={1}
                     disabled={anyLoading}
                 />

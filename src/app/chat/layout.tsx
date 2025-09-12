@@ -13,7 +13,7 @@ import { UserNav } from '@/components/chat/user-nav';
 import { ConversationList } from '@/components/chat/conversation-list';
 import { ContextPanel } from '@/components/chat/context-panel';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, MessageSquare, Settings2, FileText } from 'lucide-react';
+import { Search, Plus, MessageSquare, Settings2, FileText, Bot } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
@@ -39,9 +39,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           <SidebarFooter className='mt-auto'>
             <Separator className="my-2" />
             <div className='p-2 flex flex-col gap-2'>
-              <Button variant="ghost" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                Context
+              <Button variant="ghost" className="w-full justify-start" asChild>
+                <Link href="/memory">
+                  <Bot className="mr-2 h-4 w-4" />
+                  AI Memory
+                </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
                 <Link href="/settings">

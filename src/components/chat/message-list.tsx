@@ -215,7 +215,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   if (isNewChat && messages.length === 0) {
     return (
         <div className="flex h-full flex-col items-center justify-center gap-6 p-4 text-center">
-            <div className='p-5 bg-primary/20 rounded-full border-4 border-primary/30 shadow-lg'>
+            <div className='p-5 bg-primary/10 rounded-full border-4 border-primary/20 shadow-lg'>
               <Logo className='text-primary' />
             </div>
             <div className="space-y-2">
@@ -258,18 +258,17 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
 
               <div className={cn(
                 "flex-1 space-y-2 max-w-[85%]",
-                message.role === 'user' ? 'ml-auto' : ''
+                message.role === 'user' ? 'ml-auto flex flex-col items-end' : ''
               )}>
                 <p className={cn(
                     "font-bold font-headline text-sm",
-                    message.role === 'user' ? 'text-right' : ''
                 )}>
                   {message.role === 'user' ? 'You' : 'Progress'}
                 </p>
                 <div className={cn(
-                  "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-3xl shadow-sm",
+                  "prose prose-sm max-w-none text-foreground leading-relaxed p-4 rounded-xl shadow-sm",
                   "dark:prose-invert",
-                  message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-lg' : 'bg-background rounded-bl-lg'
+                  message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
                 )}>
                   {message.status === 'thinking' ? (
                     <ThinkingIndicator />
@@ -332,10 +331,10 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
 
               {message.role === 'user' && (
                 <Avatar className={cn(
-                    "h-9 w-9 border-2 bg-background shadow-sm"
+                    "h-9 w-9 border-2 bg-muted shadow-sm"
                 )}>
-                  <AvatarFallback className="bg-transparent text-primary">
-                    <User className="h-4 w-4" />
+                  <AvatarFallback className="bg-transparent text-foreground">
+                    <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
               )}
