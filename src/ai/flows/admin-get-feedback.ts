@@ -7,7 +7,8 @@
  */
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, applicationDefault } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
+import serviceAccount from '../../../serviceAccountKey.json';
 
 // This is the shape of the data we expect from Firestore.
 export interface Feedback {
@@ -27,12 +28,11 @@ export interface GetFeedbackOutput {
 };
 
 // Initialize Firebase Admin SDK
-// The SDK will automatically find and use the service account credentials
-// set in the GOOGLE_APPLICATION_CREDENTIALS environment variable.
 let adminApp: App;
 if (!getApps().length) {
   adminApp = initializeApp({
-    credential: applicationDefault(),
+    // Directly use the imported service account object for initialization
+    credential: cert(serviceAccount),
   });
 } else {
   adminApp = getApps()[0];
