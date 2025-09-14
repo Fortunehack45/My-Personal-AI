@@ -9,4 +9,4 @@
 import {createApi} from '@genkit-ai/next/app';
 import {appRouter} from '@/ai/dev';
 
-export const {GET, POST, OPTIONS} = createApi(appRouter);
+export const {GET, POST, OPTIONS} = createApi({router: appRouter});
