@@ -6,7 +6,7 @@
  * forwarding the request to the Genkit APM.
  */
 
-import {createApi} from '@genkit-ai/next';
+import {createApi} from '@genkit-ai/next/app';
 import {appRouter} from '@/ai/dev';
 
 export const {GET, POST, OPTIONS} = createApi(appRouter);
