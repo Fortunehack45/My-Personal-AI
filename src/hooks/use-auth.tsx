@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const profile = doc.data() as UserProfile;
             // Ensure a default voice is set if it's missing
             if (!profile.voice) {
-              profile.voice = 'gemini-female';
+              profile.voice = 'erinome';
             }
             setUserProfile(profile);
           } else {

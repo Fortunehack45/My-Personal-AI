@@ -97,7 +97,7 @@ export default function SignupPage() {
         phoneNumber,
         dob: dob ? dob.toISOString() : null,
         location,
-        voice: 'gemini-female',
+        voice: 'erinome',
         memory: '',
         voiceModeEnabled: false,
       });

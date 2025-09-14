@@ -14,7 +14,7 @@ import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Switch } from '@/components/ui/switch';
 import { useEffect, useState } from 'react';
 
-const voices = ["gemini-female", "erinome", "gemini-male", "algenib", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
+const voices = ["erinome", "gacrux", "algenib", "iapetus", "schedar", "zubenelgenubi", "achernar", "vindemiatrix"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -156,9 +156,9 @@ export default function SettingsPage() {
                   />
                 </div>
                 <RadioGroup
-                  value={userProfile.voice || 'gemini-female'}
+                  value={userProfile.voice || 'erinome'}
                   onValueChange={handleVoiceChange}
-                  className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
                 >
                   {voices.map((voice) => (
                     <Label
@@ -176,7 +176,7 @@ export default function SettingsPage() {
              ) : (
                 <div className="space-y-6">
                     <div className="flex items-center justify-between rounded-lg border p-4 h-20 bg-muted/50 animate-pulse" />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {voices.map(v => <div key={v} className="border rounded-md p-4 h-28 bg-muted/50 animate-pulse" />)}
                     </div>
                 </div>
