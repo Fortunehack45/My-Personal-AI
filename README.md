@@ -46,3 +46,4 @@ Open [http://localhost:9002](http://localhost:9002) with your browser to see the
 - **Database**: PostgreSQL (planned)
 - **Vector DB**: Pinecone/Weaviate (planned)
 - **Authentication**: JWT (planned)
+
