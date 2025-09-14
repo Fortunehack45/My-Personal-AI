@@ -1,19 +1,23 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where, getDocs, writeBatch } from 'firebase/firestore';
+import { useState, useEffect, useCallback } from 'react';
+import { doc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Message } from '@/lib/data';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
 import { generateResponse as generateResponseFlow } from '@/ai/flows/generate-response';
+import { summarizeConversationTitle } from '@/ai/flows/summarize-conversation-title';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { updateMessageContent as updateMessageContentAction } from '@/lib/firebase-admin';
 
 type ChatPanelProps = {
   conversationId: string | undefined;
+  conversationTitle: string;
 };
 
 type ActiveAudio = {
@@ -28,6 +32,7 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
   const [conversationId, setConversationId] = useState<string | undefined>(currentConversationId);
   const { user, userProfile } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   
   useEffect(() => {
     setConversationId(currentConversationId);
@@ -63,14 +68,18 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     setActiveAudio(null);
   };
 
-  const createNewConversation = async (initialMessageContent: string) => {
+  const createNewConversation = async (firstMessage: string) => {
     if (!user) return null;
 
+    // Generate title first
+    const { title } = await summarizeConversationTitle({ message: firstMessage });
+
     const newConversationRef = await addDoc(collection(db, 'users', user.uid, 'conversations'), {
-      title: initialMessageContent.substring(0, 50) || 'New Conversation',
+      title: title || 'New Conversation',
       createdAt: serverTimestamp(),
       userId: user.uid,
     });
+
     setConversationId(newConversationRef.id);
     router.replace(`/chat/${newConversationRef.id}`);
     return newConversationRef.id;
@@ -142,53 +151,67 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
   };
   
   const handleRegenerate = useCallback(async () => {
-    if (!conversationId || !user) return;
+      if (!conversationId || !user) return;
 
-    const messagesQuery = query(
-      collection(db, 'users', user.uid, 'conversations', conversationId, 'messages'),
-      orderBy('createdAt', 'desc')
-    );
+      // Find the last user message in the local state
+      const userMessages = messages.filter(m => m.role === 'user');
+      const lastUserMessage = userMessages[userMessages.length - 1];
 
-    const querySnapshot = await getDocs(messagesQuery);
-    
-    let lastUserMessageContent: string | null = null;
-    let lastUserMessageAttachment: string | undefined = undefined;
-    const batch = writeBatch(db);
-    let foundAssistantMessage = false;
+      if (lastUserMessage) {
+        // Delete all assistant messages that came after the last user message
+        const lastUserMessageIndex = messages.findIndex(m => m.id === lastUserMessage.id);
+        const messagesToDelete = messages.slice(lastUserMessageIndex + 1).filter(m => m.role === 'assistant');
+        
+        for (const msg of messagesToDelete) {
+            // This is a local removal for immediate UI feedback.
+            // A more robust solution would also delete from Firestore.
+            setMessages(prev => prev.filter(m => m.id !== msg.id));
+        }
 
-    // Delete the last assistant message(s) from the database
-    for (const doc of querySnapshot.docs) {
-      const message = doc.data();
-      if (message.role === 'assistant') {
-        batch.delete(doc.ref);
-        foundAssistantMessage = true;
+        await generateResponse(lastUserMessage.content, conversationId, lastUserMessage.attachmentDataUri);
       }
-      if (message.role === 'user') {
-        lastUserMessageContent = message.content;
-        lastUserMessageAttachment = message.attachmentDataUri;
-        break; // Stop after finding the last user message
-      }
-    }
-    
-    if (lastUserMessageContent !== null) {
-      await batch.commit(); // Apply the deletions
-      // Now regenerate response for the last user message
-      await generateResponse(lastUserMessageContent, conversationId, lastUserMessageAttachment);
-    } else if (!foundAssistantMessage && messages.length > 0) {
-      // This handles the case where there's no assistant message in the DB, but there is a user message in the local state.
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'user') {
-        await generateResponse(lastMessage.content, conversationId, lastMessage.attachmentDataUri);
-      }
-    }
-
   }, [conversationId, user, messages, generateResponse]);
+
+
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    if (!conversationId || !user) return;
+    try {
+      // Use the server action to update the message
+      await updateMessageContentAction({
+        userId: user.uid,
+        conversationId,
+        messageId,
+        newContent,
+      });
+
+      // Optimistically update local state
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === messageId ? { ...msg, content: newContent } : msg
+        )
+      );
+
+      toast({
+        title: 'Message Updated',
+        description: 'Your message has been successfully updated.',
+      });
+    } catch (error) {
+      console.error('Error updating message:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: 'There was an error updating your message.',
+      });
+    }
+  };
+
 
   return (
     <div className="flex flex-1 flex-col h-full">
       <MessageList 
           messages={messages} 
           onRegenerate={handleRegenerate}
+          onEditMessage={handleEditMessage}
           activeAudio={activeAudio}
           onPlayAudio={handlePlayAudio}
           onAudioEnded={handleAudioEnded}

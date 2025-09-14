@@ -80,3 +80,41 @@ export async function submitFeedback(input: AdminSubmitFeedbackInput): Promise<{
       });
   return { success: true };
 }
+
+
+interface DeleteConversationInput {
+    userId: string;
+    conversationId: string;
+};
+
+export async function deleteConversation(input: DeleteConversationInput): Promise<{success: boolean}> {
+    const convoRef = db.collection('users').doc(input.userId).collection('conversations').doc(input.conversationId);
+    
+    // Recursively delete subcollections (messages)
+    // This is important as deleting a document does not delete its subcollections
+    const collections = await convoRef.listCollections();
+    for (const collection of collections) {
+        const documents = await collection.listDocuments();
+        for (const doc of documents) {
+            await doc.delete();
+        }
+    }
+    
+    // Delete the conversation document itself
+    await convoRef.delete();
+    
+    return { success: true };
+}
+
+interface UpdateMessageContentInput {
+    userId: string;
+    conversationId: string;
+    messageId: string;
+    newContent: string;
+};
+
+export async function updateMessageContent(input: UpdateMessageContentInput): Promise<{success: boolean}> {
+    const messageRef = db.collection('users').doc(input.userId).collection('conversations').doc(input.conversationId).collection('messages').doc(input.messageId);
+    await messageRef.update({ content: input.newContent });
+    return { success: true };
+}

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
 import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
-import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause, Download, Bot } from 'lucide-react';
+import { User, ThumbsUp, ThumbsDown, RefreshCcw, Play, Pause, Download, Bot, Edit, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,6 +43,7 @@ type ActiveAudio = {
 type MessageListProps = {
   messages: Message[];
   onRegenerate: () => Promise<void>;
+  onEditMessage: (messageId: string, newContent: string) => Promise<void>;
   activeAudio: ActiveAudio | null;
   onPlayAudio: (messageId: string, audioDataUri: string) => void;
   onAudioEnded: () => void;
@@ -66,7 +67,7 @@ const AssistantMessage = ({ content, isLastMessage }: { content: string, isLastM
     return <Markdown content={displayedContent} />;
 };
 
-export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, onAudioEnded, isNewChat }: MessageListProps) {
+export function MessageList({ messages, onRegenerate, onEditMessage, activeAudio, onPlayAudio, onAudioEnded, isNewChat }: MessageListProps) {
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -78,6 +79,9 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   const [feedbackReason, setFeedbackReason] = useState('');
   const [currentFeedback, setCurrentFeedback] = useState<{messageId: string, rating: FeedbackRating, messageContent: string} | null>(null);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
   const conversationId = Array.isArray(params.conversationId) ? params.conversationId[0] : params.conversationId;
 
@@ -213,6 +217,31 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
       }, 1000);
     }
   };
+
+  const handleStartEditing = (message: Message) => {
+    setEditingMessageId(message.id);
+    setEditingContent(message.content);
+  };
+
+  const handleCancelEditing = () => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const handleSaveEditing = async () => {
+    if (!editingMessageId) return;
+    await onEditMessage(editingMessageId, editingContent);
+    handleCancelEditing();
+  };
+
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+      // Auto-resize textarea
+      editInputRef.current.style.height = 'auto';
+      editInputRef.current.style.height = `${editInputRef.current.scrollHeight}px`;
+    }
+  }, [editingMessageId, editingContent]);
   
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -246,7 +275,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="flex items-start gap-4 py-6"
+        className="flex items-start gap-4 py-6 group/message"
       >
         {message.role !== 'user' && (
           <Avatar className={cn(
@@ -278,7 +307,30 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
                 <Image src={message.attachmentDataUri} alt="User attachment" layout="fill" objectFit="contain" />
               </div>
             )}
-            {message.status === 'thinking' ? (
+             {editingMessageId === message.id ? (
+              <div className="space-y-2">
+                <Textarea
+                  ref={editInputRef}
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSaveEditing();
+                    }
+                    if (e.key === 'Escape') {
+                      handleCancelEditing();
+                    }
+                  }}
+                  className="w-full text-base"
+                  rows={1}
+                />
+                 <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" onClick={handleCancelEditing}>Cancel</Button>
+                    <Button size="sm" onClick={handleSaveEditing}>Save</Button>
+                </div>
+              </div>
+            ) : message.status === 'thinking' ? (
               <ThinkingIndicator />
             ) : message.role === 'assistant' ? (
               <AssistantMessage content={message.content || ''} isLastMessage={isLastMessage} />
@@ -286,55 +338,71 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
               <Markdown content={message.content || ''} />
             )}
           </div>
-          {message.role === 'assistant' && message.status !== 'thinking' && message.content && (
+          {editingMessageId !== message.id && (
             <div className="flex items-center gap-1 pt-1 text-muted-foreground">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'like', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
-                    <ThumbsUp className="h-4 w-4" />
-                    <span className="sr-only">Like</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Like</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'dislike', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
-                    <ThumbsDown className="h-4 w-4" />
-                    <span className="sr-only">Dislike</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Dislike</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRegenerate}>
-                    <RefreshCcw className="h-4 w-4" />
-                    <span className="sr-only">Regenerate</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Regenerate</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayPauseClick(message.id, message.content)} disabled={isThisMessageLoading}>
-                    {isThisMessagePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    <span className="sr-only">Play audio</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{isThisMessagePlaying ? 'Pause' : 'Play audio'}</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={isThisMessageLoading}>
-                    <Download className="h-4 w-4" />
-                    <span className="sr-only">Download audio</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Download audio</TooltipContent>
-              </Tooltip>
+                {message.role === 'user' && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover/message:opacity-100" onClick={() => handleStartEditing(message)}>
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit message</TooltipContent>
+                    </Tooltip>
+                )}
+
+                {message.role === 'assistant' && message.status !== 'thinking' && message.content && (
+                    <>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'like', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
+                            <ThumbsUp className="h-4 w-4" />
+                            <span className="sr-only">Like</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Like</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFeedbackDialog(message.id, 'dislike', message.content)} disabled={feedbackState.like === 'loading' || feedbackState.dislike === 'loading'}>
+                            <ThumbsDown className="h-4 w-4" />
+                            <span className="sr-only">Dislike</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Dislike</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRegenerate}>
+                            <RefreshCcw className="h-4 w-4" />
+                            <span className="sr-only">Regenerate</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Regenerate</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePlayPauseClick(message.id, message.content)} disabled={isThisMessageLoading}>
+                            {isThisMessagePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                            <span className="sr-only">Play audio</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{isThisMessagePlaying ? 'Pause' : 'Play audio'}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownloadAudio(message.id, message.content)} disabled={isThisMessageLoading}>
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download audio</span>
+                        </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Download audio</TooltipContent>
+                    </Tooltip>
+                    </>
+                )}
             </div>
-          )}
+           )}
         </div>
 
         {message.role === 'user' && (
