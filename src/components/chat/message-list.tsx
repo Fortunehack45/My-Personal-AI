@@ -234,7 +234,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
   }, [messages]);
 
   const messageContent = (
-    <div className="relative mx-auto max-w-3xl px-4 pt-4">
+    <div className="relative mx-auto max-w-3xl px-4 pt-4 md:px-6">
     {messages.map((message, index) => {
         const isThisMessagePlaying = audioState === 'playing' && currentAudioMessageId === message.id;
         const isThisMessageLoading = audioState === 'loading' && currentAudioMessageId === message.id;
@@ -260,7 +260,7 @@ export function MessageList({ messages, onRegenerate, activeAudio, onPlayAudio, 
         )}
 
         <div className={cn(
-          "flex-1 space-y-2 max-w-[85%]",
+          "flex-1 space-y-2 max-w-[calc(100%-4rem)]",
           message.role === 'user' ? 'ml-auto flex flex-col items-end' : ''
         )}>
           <p className={cn(

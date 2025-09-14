@@ -55,7 +55,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         </Sidebar>
 
         <div className="flex flex-col md:pl-[var(--sidebar-width-icon)] lg:pl-[calc(var(--sidebar-width)_+_1rem)] transition-[margin-left] duration-200 ease-linear group-data-[state=expanded]/sidebar-wrapper:lg:pl-[calc(var(--sidebar-width)_+_1rem)] group-data-[state=collapsed]/sidebar-wrapper:lg:pl-[calc(var(--sidebar-width-icon)_+_1rem)]">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-20 lg:px-6">
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
             <div className="flex items-center gap-2">
               <SidebarTrigger className='md:hidden' />
               <h1 className="font-headline font-semibold text-xl lg:text-2xl truncate">New Conversation</h1>
@@ -66,7 +66,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             </div>
 
           </header>
-          <div className="flex flex-1 h-[calc(100vh-theme(height.16))] lg:h-[calc(100vh-theme(height.20))]">
+          <div className="flex flex-1 h-[calc(100vh-theme(height.16))]">
             <SidebarInset className="flex-1 bg-muted/20">
               {children}
             </SidebarInset>
