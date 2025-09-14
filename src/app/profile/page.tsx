@@ -17,6 +17,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -26,6 +27,55 @@ const profileSchema = z.object({
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
+
+const ProfilePageSkeleton = () => (
+    <div className="p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+             <div className="flex items-center justify-between">
+                <div>
+                    <Skeleton className="h-9 w-48 mb-2" />
+                    <Skeleton className="h-5 w-80" />
+                </div>
+                <Skeleton className="h-10 w-36" />
+            </div>
+            <Card>
+                <CardHeader className="border-b">
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        <Skeleton className="h-24 w-24 rounded-full" />
+                        <div className="text-center md:text-left">
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-5 w-56" />
+                        </div>
+                        <div className="md:ml-auto">
+                            <Skeleton className="h-10 w-32" />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Skeleton className="h-5 w-24 mb-2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                             <Skeleton className="h-5 w-24 mb-2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                             <Skeleton className="h-5 w-32 mb-2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-5 w-32 mb-2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    </div>
+);
+
 
 export default function ProfilePage() {
   const { user, userProfile, updateUserProfile, loading: authLoading } = useAuth();
@@ -80,11 +130,7 @@ export default function ProfilePage() {
   };
 
   if (authLoading || !user || !userProfile) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading user profile...</p>
-      </div>
-    );
+    return <ProfilePageSkeleton />;
   }
 
   const userInitial = userProfile?.firstName ? userProfile.firstName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U';

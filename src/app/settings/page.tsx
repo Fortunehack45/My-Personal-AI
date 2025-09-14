@@ -13,12 +13,53 @@ import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Switch } from '@/components/ui/switch';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const voices = ["erinome", "gacrux", "algenib", "iapetus", "schedar", "zubenelgenubi", "achernar", "vindemiatrix"];
 
+const SettingsPageSkeleton = () => (
+    <div className="p-4 md:p-8">
+        <div className="max-w-2xl mx-auto space-y-8">
+             <div className="flex items-center justify-between">
+                <div>
+                    <Skeleton className="h-9 w-48 mb-2" />
+                    <Skeleton className="h-5 w-80" />
+                </div>
+                <Skeleton className="h-10 w-36" />
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-40" />
+                    <Skeleton className="h-4 w-96" />
+                </CardHeader>
+                <CardContent>
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <Skeleton className="h-28" />
+                        <Skeleton className="h-28" />
+                        <Skeleton className="h-28" />
+                     </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-full" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-20 w-full" />
+                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {voices.map(v => <Skeleton key={v} className="h-28 w-full" />)}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    </div>
+);
+
+
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
-  const { userProfile, updateUserProfile } = useAuth();
+  const { user, userProfile, updateUserProfile } = useAuth();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
@@ -72,6 +113,11 @@ export default function SettingsPage() {
         });
     }
   };
+
+  if (!isClient || !userProfile || !user) {
+      return <SettingsPageSkeleton />;
+  }
+
 
   return (
     <div className="p-4 md:p-8">

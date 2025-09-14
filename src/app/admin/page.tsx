@@ -11,8 +11,40 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ThumbsUp, ThumbsDown, ShieldCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type FeedbackItem = Feedback;
+
+const AdminPageSkeleton = () => (
+    <div className="p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-9 w-64 mb-2" />
+            <Skeleton className="h-5 w-80" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </CardHeader>
+          <CardContent>
+             <div className="space-y-2">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+             </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+);
+
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -44,11 +76,7 @@ export default function AdminPage() {
   }, [user, loading, router]);
   
   if (loading || (isLoading && !error)) {
-    return (
-      <div className="flex flex-1 flex-col h-full items-center justify-center">
-        <p>Loading Admin Panel...</p>
-      </div>
-    );
+    return <AdminPageSkeleton />;
   }
   
   if (!user || user.email !== 'fortunedomination@gmail.com') {
