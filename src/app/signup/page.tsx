@@ -73,7 +73,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || !password || !dob) {
+    if (!firstName || !lastName || !email || !password) {
         toast({
             variant: 'destructive',
             title: 'Missing Fields',
@@ -95,7 +95,7 @@ export default function SignupPage() {
         lastName,
         email,
         phoneNumber,
-        dob: dob.toISOString(),
+        dob: dob ? dob.toISOString() : null,
         location,
         voice: 'gemini-female',
         memory: '',
