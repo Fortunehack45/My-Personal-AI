@@ -72,10 +72,18 @@ export function ChatPanel({ conversationId: currentConversationId }: ChatPanelPr
     if (!user) return null;
 
     // Generate title first
-    const { title } = await summarizeConversationTitle({ message: firstMessage });
+    let title = 'New Conversation';
+    try {
+        const result = await summarizeConversationTitle({ message: firstMessage });
+        if (result && result.title) {
+            title = result.title;
+        }
+    } catch (e) {
+        console.error("Failed to generate conversation title:", e);
+    }
 
     const newConversationRef = await addDoc(collection(db, 'users', user.uid, 'conversations'), {
-      title: title || 'New Conversation',
+      title: title,
       createdAt: serverTimestamp(),
       userId: user.uid,
     });

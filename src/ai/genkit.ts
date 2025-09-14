@@ -1,12 +1,10 @@
-import {config} from 'dotenv';
-config({path: '.env.local'});
-
 import {genkit} from 'genkit';
-import {googleAI as googleAIPlugin} from '@genkit-ai/googleai';
+import {googleAI as googleAIPlugin} from '@gen-ai/google-ai';
+import {nextPlugin} from '@genkit-ai/next';
 
 export const googleAI = googleAIPlugin();
 
 export const ai = genkit({
-  plugins: [googleAI],
+  plugins: [googleAI, nextPlugin()],
   model: 'googleai/gemini-2.5-flash',
 });

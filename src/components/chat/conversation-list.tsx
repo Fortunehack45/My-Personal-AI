@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -128,6 +129,7 @@ export function ConversationList() {
   };
 
   const renderConversationItem = (convo: Conversation) => {
+    const title = convo.title || 'New Conversation';
     if (editingConvoId === convo.id) {
         return (
              <div key={convo.id} className="flex items-center gap-1 p-1">
@@ -155,11 +157,11 @@ export function ConversationList() {
               asChild
             >
               <Link href={`/chat/${convo.id}`} className="truncate">
-                <span className="truncate text-sm font-medium">{convo.title}</span>
+                <span className="truncate text-sm font-medium">{title}</span>
               </Link>
             </Button>
             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEditing(convo)}><Edit className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEditing({...convo, title})}><Edit className="h-4 w-4" /></Button>
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>

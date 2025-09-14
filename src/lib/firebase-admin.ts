@@ -9,7 +9,6 @@
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
-import serviceAccount from '../../serviceAccountKey.json';
 
 // This is the shape of the data we expect from Firestore.
 export interface Feedback {
@@ -28,20 +27,44 @@ export interface GetFeedbackOutput {
   feedback: Feedback[];
 };
 
+function getServiceAccount() {
+  const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!serviceAccountStr) {
+    throw new Error('The FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set. This is required for server-side Firebase operations.');
+  }
+  try {
+    return JSON.parse(Buffer.from(serviceAccountStr, 'base64').toString('utf8'));
+  } catch (e) {
+    throw new Error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Make sure it is a valid base64-encoded JSON string.');
+  }
+}
+
 // Initialize Firebase Admin SDK
 let adminApp: App;
 if (!getApps().length) {
-  adminApp = initializeApp({
-    credential: cert(serviceAccount as ServiceAccount),
-  });
+  try {
+    adminApp = initializeApp({
+      credential: cert(getServiceAccount() as ServiceAccount),
+    });
+  } catch (e: any) {
+    console.error("Failed to initialize Firebase Admin SDK:", e.message);
+    // We'll throw an error in functions that need it, but allow the app to load.
+  }
 } else {
   adminApp = getApps()[0];
 }
 
-const db = getFirestore(adminApp);
+
+function getDb() {
+    if (!adminApp) {
+        throw new Error("Firebase Admin SDK is not initialized. Check your FIREBASE_SERVICE_ACCOUNT_KEY environment variable.");
+    }
+    return getFirestore(adminApp);
+}
 
 
 export async function getFeedback(): Promise<GetFeedbackOutput> {
+    const db = getDb();
     const feedbackSnapshot = await db.collection('feedback').orderBy('submittedAt', 'desc').get();
     
     const feedback: Feedback[] = [];
@@ -74,6 +97,7 @@ interface AdminSubmitFeedbackInput {
 };
 
 export async function submitFeedback(input: AdminSubmitFeedbackInput): Promise<{success: boolean}> {
+    const db = getDb();
     await db.collection('feedback').add({
         ...input,
         submittedAt: Timestamp.now(),
@@ -88,6 +112,7 @@ interface DeleteConversationInput {
 };
 
 export async function deleteConversation(input: DeleteConversationInput): Promise<{success: boolean}> {
+    const db = getDb();
     const convoRef = db.collection('users').doc(input.userId).collection('conversations').doc(input.conversationId);
     
     // Recursively delete subcollections (messages)
@@ -114,6 +139,7 @@ interface UpdateMessageContentInput {
 };
 
 export async function updateMessageContent(input: UpdateMessageContentInput): Promise<{success: boolean}> {
+    const db = getDb();
     const messageRef = db.collection('users').doc(input.userId).collection('conversations').doc(input.conversationId).collection('messages').doc(input.messageId);
     await messageRef.update({ content: input.newContent });
     return { success: true };
