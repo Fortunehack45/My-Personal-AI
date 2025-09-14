@@ -5,6 +5,6 @@ import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/speech-to-text.ts';
 import '@/ai/flows/generate-image.ts';
 import '@/ai/flows/summarize-conversation-title.ts';
-import {createApp} from '@genkit-ai/next/app';
+import {createApp} from '@genkit-ai/next';
 
 export const appRouter = createApp();
