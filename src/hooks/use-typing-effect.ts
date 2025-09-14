@@ -12,16 +12,27 @@ import { useState, useEffect } from 'react';
 
 const WPM_TO_CPS = (wpm: number) => (wpm * 5) / 60;
 
-export const useTypingEffect = (text: string, isLastMessage: boolean, wordsPerMinute = 15000) => {
+const getWpmForText = (text: string): number => {
+    const length = text.length;
+    if (length < 100) return 25000;
+    if (length < 300) return 20000;
+    if (length < 800) return 10000;
+    if (length < 1500) return 5000;
+    return 3000;
+};
+
+
+export const useTypingEffect = (text: string, isLastMessage: boolean) => {
     const [displayedText, setDisplayedText] = useState('');
-    const cps = WPM_TO_CPS(wordsPerMinute);
+    const wpm = getWpmForText(text);
+    const cps = WPM_TO_CPS(wpm);
     const interval = 1000 / cps;
 
     useEffect(() => {
         if (!text) return;
 
         // If the message is not the last one, or is short, display it immediately.
-        if (!isLastMessage || text.length < 20 || wordsPerMinute >= 10000) {
+        if (!isLastMessage || text.length < 20 || wpm >= 10000) {
             setDisplayedText(text);
             return;
         }
@@ -40,7 +51,7 @@ export const useTypingEffect = (text: string, isLastMessage: boolean, wordsPerMi
         return () => {
             clearInterval(timer);
         };
-    }, [text, interval, isLastMessage, wordsPerMinute]);
+    }, [text, interval, isLastMessage, wpm]);
 
     // Append a cursor to the end of the text while typing
     const isTyping = displayedText.length < text.length;
