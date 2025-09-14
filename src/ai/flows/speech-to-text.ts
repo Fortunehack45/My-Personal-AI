@@ -28,12 +28,6 @@ export async function speechToText(input: SpeechToTextInput): Promise<SpeechToTe
   return speechToTextFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'speechToTextPrompt',
-  input: {schema: SpeechToTextInputSchema},
-  prompt: `Transcribe the following audio recording: {{media url=audioDataUri}}`,
-});
-
 const speechToTextFlow = ai.defineFlow(
   {
     name: 'speechToTextFlow',
@@ -45,7 +39,8 @@ const speechToTextFlow = ai.defineFlow(
       prompt: [
         {text: 'Transcribe the following audio recording:'},
         {media: {url: input.audioDataUri}}
-      ]
+      ],
+      model: 'googleai/gemini-1.5-flash',
     });
     
     return { transcription: text };
