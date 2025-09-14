@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Switch } from '@/components/ui/switch';
 
-const voices = ["gemini-female", "gemini-male", "algenib", "erinome", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
+const voices = ["gemini-female", "erinome", "gemini-male", "algenib", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -30,7 +30,7 @@ export default function SettingsPage() {
         description: `The AI voice has been changed to ${newVoice}.`,
       });
       // Play a sample
-      const { audioDataUri } = await textToSpeech({ text: `Hello, this is the new ${newVoice} voice.`, voice: newVoice });
+      const { audioDataUri } = await textToSpeech({ text: `Hello, this is the new ${newVoice.replace('-', ' ')} voice.`, voice: newVoice });
       const audio = new Audio(audioDataUri);
       audio.play();
 

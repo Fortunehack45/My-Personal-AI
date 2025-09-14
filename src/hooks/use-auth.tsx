@@ -45,7 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
-            setUserProfile(doc.data() as UserProfile);
+            const profile = doc.data() as UserProfile;
+            // Ensure a default voice is set if it's missing
+            if (!profile.voice) {
+              profile.voice = 'gemini-female';
+            }
+            setUserProfile(profile);
           } else {
             // This can happen if the user record exists in Auth but not in Firestore
             setUserProfile(null);
