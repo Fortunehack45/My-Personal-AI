@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -11,6 +12,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { Switch } from '@/components/ui/switch';
+import { useEffect, useState } from 'react';
 
 const voices = ["gemini-female", "erinome", "gemini-male", "algenib", "gacrux", "iapetus", "schedar", "zubenelgenubi"];
 
@@ -18,6 +20,11 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { userProfile, updateUserProfile } = useAuth();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleVoiceChange = async (newVoice: string) => {
     if (!userProfile) return;
@@ -90,27 +97,35 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Theme</Label>
-                <RadioGroup 
-                  defaultValue={theme} 
-                  onValueChange={setTheme}
-                  className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-                >
-                  <Label htmlFor="light" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
-                    <Sun className="h-6 w-6" />
-                    <RadioGroupItem value="light" id="light" className="sr-only" />
-                    <span>Light</span>
-                  </Label>
-                  <Label htmlFor="dark" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
-                    <Moon className="h-6 w-6" />
-                    <RadioGroupItem value="dark" id="dark" className="sr-only" />
-                    <span>Dark</span>
-                  </Label>
-                   <Label htmlFor="system" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
-                    <Monitor className="h-6 w-6" />
-                    <RadioGroupItem value="system" id="system" className="sr-only" />
-                    <span>System</span>
-                  </Label>
-                </RadioGroup>
+                {isClient ? (
+                  <RadioGroup 
+                    value={theme} 
+                    onValueChange={setTheme}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                  >
+                    <Label htmlFor="light" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
+                      <Sun className="h-6 w-6" />
+                      <RadioGroupItem value="light" id="light" className="sr-only" />
+                      <span>Light</span>
+                    </Label>
+                    <Label htmlFor="dark" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
+                      <Moon className="h-6 w-6" />
+                      <RadioGroupItem value="dark" id="dark" className="sr-only" />
+                      <span>Dark</span>
+                    </Label>
+                     <Label htmlFor="system" className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
+                      <Monitor className="h-6 w-6" />
+                      <RadioGroupItem value="system" id="system" className="sr-only" />
+                      <span>System</span>
+                    </Label>
+                  </RadioGroup>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="border rounded-md p-4 h-28 bg-muted/50 animate-pulse" />
+                    <div className="border rounded-md p-4 h-28 bg-muted/50 animate-pulse" />
+                    <div className="border rounded-md p-4 h-28 bg-muted/50 animate-pulse" />
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -122,39 +137,50 @@ export default function SettingsPage() {
             <CardDescription>Select the voice for the text-to-speech feature and configure voice mode.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-             <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label htmlFor="voice-mode" className="text-base flex items-center gap-2">
-                    <Bot className="h-5 w-5" />
-                    <span>Voice Mode</span>
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Have the AI read its responses out loud automatically.
-                  </p>
+             {isClient && userProfile ? (
+              <>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="voice-mode" className="text-base flex items-center gap-2">
+                      <Bot className="h-5 w-5" />
+                      <span>Voice Mode</span>
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Have the AI read its responses out loud automatically.
+                    </p>
+                  </div>
+                  <Switch
+                    id="voice-mode"
+                    checked={userProfile.voiceModeEnabled || false}
+                    onCheckedChange={handleVoiceModeToggle}
+                  />
                 </div>
-                <Switch
-                  id="voice-mode"
-                  checked={userProfile?.voiceModeEnabled || false}
-                  onCheckedChange={handleVoiceModeToggle}
-                />
-              </div>
-            <RadioGroup
-              value={userProfile?.voice || 'gemini-female'}
-              onValueChange={handleVoiceChange}
-              className="grid grid-cols-2 sm:grid-cols-3 gap-4"
-            >
-              {voices.map((voice) => (
-                <Label
-                  key={voice}
-                  htmlFor={voice}
-                  className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary"
+                <RadioGroup
+                  value={userProfile.voice || 'gemini-female'}
+                  onValueChange={handleVoiceChange}
+                  className="grid grid-cols-2 sm:grid-cols-3 gap-4"
                 >
-                  <Volume2 className="h-6 w-6" />
-                  <RadioGroupItem value={voice} id={voice} className="sr-only" />
-                  <span className="capitalize">{voice.replace('-', ' ')}</span>
-                </Label>
-              ))}
-            </RadioGroup>
+                  {voices.map((voice) => (
+                    <Label
+                      key={voice}
+                      htmlFor={voice}
+                      className="border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary"
+                    >
+                      <Volume2 className="h-6 w-6" />
+                      <RadioGroupItem value={voice} id={voice} className="sr-only" />
+                      <span className="capitalize">{voice.replace('-', ' ')}</span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+              </>
+             ) : (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between rounded-lg border p-4 h-20 bg-muted/50 animate-pulse" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {voices.map(v => <div key={v} className="border rounded-md p-4 h-28 bg-muted/50 animate-pulse" />)}
+                    </div>
+                </div>
+             )}
           </CardContent>
         </Card>
 
